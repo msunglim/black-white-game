@@ -160,15 +160,20 @@ begin
     'opponent_bet_chips',case when v_role='host' then r.guest_bet_chips else r.host_bet_chips end,
     'bet_revealed',to_jsonb(r.bet_revealed),'bet_folded',to_jsonb(r.bet_folded),
     'my_current_tile',case when r.game_mode='bw_bet' and r.bet_phase='battle' and r.host_bet_ready and r.guest_bet_ready then case when v_role='host' then r.host_bet_order[r.round_no] else r.guest_bet_order[r.round_no] end else null end,
-    'opponent_current_tile',case when r.game_mode='bw_bet' and r.status='finished' and r.bet_revealed[r.round_no] and not r.bet_folded[r.round_no] then case when v_role='host' then r.guest_bet_order[r.round_no] else r.host_bet_order[r.round_no] end else null end,
+    'opponent_current_tile',case when r.game_mode='bw_bet' and r.bet_revealed[r.round_no] and not r.bet_folded[r.round_no] then case when v_role='host' then r.guest_bet_order[r.round_no] else r.host_bet_order[r.round_no] end else null end,
     'opponent_current_tile_color',case when r.game_mode='bw_bet' and r.bet_phase='battle' and r.host_bet_ready and r.guest_bet_ready then case when (case when v_role='host' then r.guest_bet_order[r.round_no] else r.host_bet_order[r.round_no] end)%2=0 then 'black' else 'white' end else null end,
+    'opponent_bet_tile_colors',case when r.host_bet_ready and r.guest_bet_ready then to_jsonb(array(
+      select case when tiles.tile%2=0 then 'black' else 'white' end
+      from unnest(case when v_role='host' then r.guest_bet_order else r.host_bet_order end) with ordinality as tiles(tile,ordinality)
+      order by tiles.ordinality
+    )) else null end,
     'my_current_wager',case when r.game_mode='bw_bet' and r.bet_phase='battle' and r.host_bet_ready and r.guest_bet_ready then case when v_role='host' then r.host_bet_wagers[r.round_no] else r.guest_bet_wagers[r.round_no] end else null end,
     'opponent_current_wager',case when r.game_mode='bw_bet' and r.bet_phase='battle' and r.host_bet_ready and r.guest_bet_ready then case when v_role='host' then r.guest_bet_wagers[r.round_no] else r.host_bet_wagers[r.round_no] end else null end,
     'bet_history',case when r.status='finished' then r.bet_history else coalesce((
       select jsonb_agg(
         history.entry || jsonb_build_object(
-          'host_tile',case when v_role='host' then history.entry->'host_tile' else 'null'::jsonb end,
-          'guest_tile',case when v_role='guest' then history.entry->'guest_tile' else 'null'::jsonb end,
+          'host_tile',case when v_role='host' or coalesce((history.entry->>'opened')::boolean,false) then history.entry->'host_tile' else 'null'::jsonb end,
+          'guest_tile',case when v_role='guest' or coalesce((history.entry->>'opened')::boolean,false) then history.entry->'guest_tile' else 'null'::jsonb end,
           'host_tile_color',case when history.entry->>'host_tile' is null then null when (history.entry->>'host_tile')::integer%2=0 then 'black' else 'white' end,
           'guest_tile_color',case when history.entry->>'guest_tile' is null then null when (history.entry->>'guest_tile')::integer%2=0 then 'black' else 'white' end
         ) order by history.ordinality
