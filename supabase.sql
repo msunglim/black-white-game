@@ -161,6 +161,7 @@ begin
     'bet_revealed',to_jsonb(r.bet_revealed),'bet_folded',to_jsonb(r.bet_folded),
     'my_current_tile',case when r.game_mode='bw_bet' and r.bet_phase='battle' and r.host_bet_ready and r.guest_bet_ready then case when v_role='host' then r.host_bet_order[r.round_no] else r.guest_bet_order[r.round_no] end else null end,
     'opponent_current_tile',case when r.game_mode='bw_bet' and r.bet_phase='battle' and r.bet_revealed[r.round_no] and not r.bet_folded[r.round_no] then case when v_role='host' then r.guest_bet_order[r.round_no] else r.host_bet_order[r.round_no] end else null end,
+    'opponent_current_tile_color',case when r.game_mode='bw_bet' and r.bet_phase='battle' and r.host_bet_ready and r.guest_bet_ready then case when (case when v_role='host' then r.guest_bet_order[r.round_no] else r.host_bet_order[r.round_no] end)%2=0 then 'black' else 'white' end else null end,
     'my_current_wager',case when r.game_mode='bw_bet' and r.bet_phase='battle' and r.host_bet_ready and r.guest_bet_ready then case when v_role='host' then r.host_bet_wagers[r.round_no] else r.guest_bet_wagers[r.round_no] end else null end,
     'opponent_current_wager',case when r.game_mode='bw_bet' and r.bet_phase='battle' and r.host_bet_ready and r.guest_bet_ready then case when v_role='host' then r.guest_bet_wagers[r.round_no] else r.host_bet_wagers[r.round_no] end else null end,
     'bet_history',r.bet_history,
