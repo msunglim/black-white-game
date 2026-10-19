@@ -187,8 +187,8 @@ function renderBetBoard(s){
   header.append(roundLabel,ownHeader,opponentHeader);row.appendChild(header);
   if(needsRecovery){
    row.classList.add('needs-recovery');
-   const recoveryButton=document.createElement('button');recoveryButton.type='button';recoveryButton.className='secondary bet-recovery-jump';recoveryButton.textContent='칩 충당 ↓';recoveryButton.setAttribute('aria-label',`라운드 ${round} 칩 충당 입력으로 이동`);
-   recoveryButton.addEventListener('click',()=>{const recoveryList=$('betRecoveryTiles');recoveryList.scrollIntoView({behavior:'smooth',block:'center'});recoveryList.querySelector('input:not(:disabled)')?.focus({preventScroll:true})});
+   const recoveryButton=document.createElement('button');recoveryButton.type='button';recoveryButton.className='secondary bet-recovery-jump';recoveryButton.textContent='칩 충당 ↓';recoveryButton.setAttribute('aria-label',`라운드 ${round} 칩 충당 안내로 이동`);
+   recoveryButton.addEventListener('click',()=>$('betDecisionHelp').scrollIntoView({behavior:'smooth',block:'center'}));
    row.appendChild(recoveryButton)
   }
   for(const[label,ownValue,opponentValue]of[['타일',ownTile,opponentTile],['베팅칩',ownStake,opponentStake]]){
