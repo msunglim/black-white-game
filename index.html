@@ -171,8 +171,8 @@ function renderBetBoard(s){
   const round=i+1,entry=publicRounds.get(round);
   const ownStake=entry?(myRole==='host'?entry.host_wager:entry.guest_wager):ownWagers[i];
   const opponentStake=entry?(myRole==='host'?entry.guest_wager:entry.host_wager):opponentWagers[i];
-  const deficit=Number(s.opponent_current_wager)-Number(s.my_current_wager);
-  const needsRecovery=!entry&&s.status==='playing'&&s.bet_phase==='battle'&&round===s.round_no&&deficit>0&&(Number(s.my_bet_chips)||0)<deficit;
+  const myCurrentWager=Number(s.my_current_wager),opponentCurrentWager=Number(s.opponent_current_wager);
+  const needsRecovery=s.status==='playing'&&s.bet_phase==='battle'&&round===s.round_no&&Number.isFinite(myCurrentWager)&&Number.isFinite(opponentCurrentWager)&&myCurrentWager<opponentCurrentWager;
   const ownTile=s.my_bet_order?.[i]??(entry?(myRole==='host'?entry.host_tile:entry.guest_tile):null);
   const opponentTile=entry?.opened?(myRole==='host'?entry.guest_tile:entry.host_tile):null;
   const historyColor=myRole==='host'?entry?.guest_tile_color:entry?.host_tile_color;
