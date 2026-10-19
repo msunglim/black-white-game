@@ -353,7 +353,9 @@ end $$;
 
 drop function if exists public.bw_bet_action(text,text,text,integer[]);
 drop function if exists public.bw_bet_action(text,text,text,integer,integer[]);
-create or replace function public.bw_bet_action(p_code text,p_token text,p_action text,p_round integer,p_recover_tiles integer[] default '{}',p_recover_amounts integer[] default '{}')
+drop function if exists public.bw_bet_action(text,text,text,integer,integer[],integer[]);
+drop function if exists public.bw_bet_action(text,text,text,integer,integer[],integer[],integer);
+create or replace function public.bw_bet_action(p_code text,p_token text,p_action text,p_round integer,p_recover_tiles integer[] default '{}',p_recover_amounts integer[] default '{}',p_wallet_spend integer default null)
 returns jsonb language plpgsql security definer set search_path=public,extensions,pg_temp as $$
 declare
   r public.bw_rooms%rowtype;
@@ -415,9 +417,12 @@ begin
       end if;
       v_recovery_total:=v_recovery_total+v_take;
     end loop;
-    v_wallet_spend:=least(v_wallet,v_need);
+    v_wallet_spend:=coalesce(p_wallet_spend,least(v_wallet,v_need));
+    if v_wallet_spend<0 or v_wallet_spend>least(v_wallet,v_need) then
+      raise exception '사용할 보유 칩 수는 0개 이상이며 보유 칩과 부족분을 넘을 수 없습니다.';
+    end if;
     v_need:=v_need-v_wallet_spend;
-    if v_recovery_total<>v_need then raise exception '타일별 회수 칩 합계는 필요한 %칩과 같아야 합니다.',v_need; end if;
+    if v_recovery_total<>v_need then raise exception '보유 칩 사용 후 타일별 회수 칩 합계는 %칩과 같아야 합니다.',v_need; end if;
     if v_low_role='host' then v_host_chips:=v_host_chips-v_wallet_spend; else v_guest_chips:=v_guest_chips-v_wallet_spend; end if;
     for v_pos in 1..cardinality(coalesce(p_recover_tiles,'{}'::integer[])) loop
       v_tile:=p_recover_tiles[v_pos];
@@ -495,7 +500,7 @@ revoke all on function public.bw_choose_starter(text,text,text) from public;
 revoke all on function public.bw_get_state(text,text) from public;
 revoke all on function public.bw_submit_move(text,text,integer) from public;
 revoke all on function public.bw_bet_submit_plan(text,text,integer[],integer[]) from public;
-revoke all on function public.bw_bet_action(text,text,text,integer,integer[],integer[]) from public;
+revoke all on function public.bw_bet_action(text,text,text,integer,integer[],integer[],integer) from public;
 revoke all on function public.bw_set_reaction(text,text,text) from public;
 grant execute on function public.bw_create_room(text,text,text,text) to anon,authenticated;
 grant execute on function public.bw_join_room(text,text,text) to anon,authenticated;
@@ -503,5 +508,5 @@ grant execute on function public.bw_choose_starter(text,text,text) to anon,authe
 grant execute on function public.bw_get_state(text,text) to anon,authenticated;
 grant execute on function public.bw_submit_move(text,text,integer) to anon,authenticated;
 grant execute on function public.bw_bet_submit_plan(text,text,integer[],integer[]) to anon,authenticated;
-grant execute on function public.bw_bet_action(text,text,text,integer,integer[],integer[]) to anon,authenticated;
+grant execute on function public.bw_bet_action(text,text,text,integer,integer[],integer[],integer) to anon,authenticated;
 grant execute on function public.bw_set_reaction(text,text,text) to anon,authenticated;

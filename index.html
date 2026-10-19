@@ -43,7 +43,7 @@ input,select,button{font:inherit;border-radius:12px;border:1px solid var(--line)
 <div class="rule"></div><div id="resultBanner" class="notice hidden"></div>
 <div id="bidArea" class="bidarea"><p class="title" id="bidTitle">포인트 제시</p><div id="bidHelp" class="small">내 차례에 사용할 포인트를 입력하세요.</div><div id="bw1Tiles" class="hidden"><div class="opponent-tiles"><div class="small">상대 남은 숫자 타일</div><div id="opponentTileCount" class="small"></div><div id="opponentTileColors" class="opponent-tile-colors" aria-label="상대의 남은 타일 색상"></div><div id="opponentCurrentTileColor" class="small" aria-live="polite"></div></div><div class="small">사용할 숫자 타일을 선택하세요. 검은 타일: 0, 2, 4, 6, 8 · 흰 타일: 1, 3, 5, 7</div><div id="tileOptions" class="tile-options"></div></div><div id="bw2Input"><label class="small" for="bidInput">제시 포인트 (0부터 남은 포인트까지)</label><input id="bidInput" type="number" inputmode="numeric" min="0" max="99" step="1" placeholder="베팅값을입력하세요"></div><div class="spacer"></div><div class="row"><button id="submitBtn" disabled>포인트 제시</button><button id="refreshBtn" class="secondary">상태 새로고침</button></div></div>
 <section id="betSetupArea" class="bidarea hidden"><p class="title">비공개 타일 순서와 칩 베팅</p><div class="small">0~9 타일을 원하는 순서로 배치하세요. <strong class="bet-minimum-warning">모든 타일에 최소 1칩을 베팅해야 합니다.</strong> 총 30칩을 모두 배분하세요. 빨간 사각형은 아직 타일에 배분하지 않은 칩입니다. 상대에게는 두 사람이 모두 확정하기 전까지 순서와 베팅이 공개되지 않습니다. 확정 후에는 변경할 수 없습니다.</div><div class="spacer"></div><div class="small" id="betPlanTotal">베팅 합계 0/30칩</div><div id="betSetupAvailableChips" class="bet-available-chips" aria-label="아직 배분하지 않은 칩 30개"></div><div class="bet-plan-list" id="betPlanTiles"></div><div class="spacer"></div><button id="betPlanSubmit" style="width:100%">순서와 베팅 확정</button></section>
-<section id="betBattleArea" class="bidarea hidden"><p class="title" id="betBattleTitle">베팅! 흑과 백</p><div id="betBattleStatus" class="small"></div><div class="small">사용 가능한 보유 칩</div><div id="betAvailableChips" class="bet-available-chips" aria-label="보유 중인 배팅 가능 칩"></div><div class="spacer"></div><div class="bet-table-wrap"><div class="bet-board" id="betBoard"></div></div><div class="spacer"></div><div id="betDecisionArea" class="hidden"><div class="notice" id="betDecisionHelp"></div><div class="small">보유 칩을 먼저 사용합니다. 더 필요하면 각 미진행 타일에서 회수할 칩 개수를 직접 입력한 뒤 '칩을 맞추고 승부'를 눌러 확정하세요. 회수 대상 타일마다 1칩은 남겨야 합니다.</div><div class="small" id="betRecoverySummary"></div><div id="betRecoveryTiles" class="bet-recovery-list"></div><div class="bet-choice-row"><button id="betMatchBtn">칩을 맞추고 승부</button><button id="betFoldBtn" class="secondary">포기</button></div></div></section>
+<section id="betBattleArea" class="bidarea hidden"><p class="title" id="betBattleTitle">베팅! 흑과 백</p><div id="betBattleStatus" class="small"></div><div class="small" id="betAvailableChipsCount">사용 가능한 보유 칩 총 0개</div><div id="betAvailableChips" class="bet-available-chips" aria-label="보유 중인 배팅 가능 칩"></div><div class="spacer"></div><div class="bet-table-wrap"><div class="bet-board" id="betBoard"></div></div><div class="spacer"></div><div id="betDecisionArea" class="hidden"><div class="notice" id="betDecisionHelp"></div><div class="small">보유 칩과 각 미진행 타일에서 가져올 칩 수를 직접 선택하세요. 선택한 칩의 합계로 부족분을 맞춥니다. 회수 대상 타일마다 1칩은 남겨야 합니다.</div><div class="small" id="betRecoverySummary"></div><div id="betRecoveryTiles" class="bet-recovery-list"></div><div class="bet-choice-row"><button id="betMatchBtn">칩을 맞추고 승부</button><button id="betFoldBtn" class="secondary">포기</button></div></div></section>
 <div class="reaction-controls" id="reactionControls"><button class="reaction-btn" data-reaction="😄">😄</button><button class="reaction-btn" data-reaction="😠">😠</button><button class="reaction-btn" data-reaction="😢">😢</button><button class="reaction-btn" data-reaction="😱">😱</button><button class="reaction-btn" data-reaction="🎉">🎉</button><button class="reaction-btn" data-reaction="👏">👏</button></div><div class="spacer"></div><p class="title" id="liveHistoryTitle">진행 로그</p><div class="history" id="liveHistory"></div><div class="rule"></div><p class="title" id="historyTitle">게임 종료 로그</p><div class="history" id="history"></div>
 <div id="betHistoryArea" class="hidden"><div class="rule"></div><p class="title">베팅 승부 로그</p><div class="bet-history" id="betHistory"></div></div>
 <div class="spacer"></div><button id="leaveBtn" class="secondary" style="width:100%">로비로</button>
@@ -58,7 +58,7 @@ const SUPABASE_URL = 'https://njhslhzehvcjrhqrzist.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_5VZAH_BjewErc6p_usr_fg_6sH2BFc4';
 const $ = id => document.getElementById(id);
 let sb=null,roomCode='',playerToken='',myRole='',myNick='',myAvatar='🕴️',current=null,polling=null,busy=false,selectedTileValue=null;
-let betOrderDraft=[0,1,2,3,4,5,6,7,8,9],betWagersDraft=Array(10).fill(0),betSetupRendered=false,betActionBusy=false,selectedRecoveryAmounts={},selectedRecoveryRound=0,betDragIndex=null,betDragPointerId=null;
+let betOrderDraft=[0,1,2,3,4,5,6,7,8,9],betWagersDraft=Array(10).fill(0),betSetupRendered=false,betActionBusy=false,selectedRecoveryAmounts={},selectedRecoveryWalletAmount=null,selectedRecoveryRound=0,betDragIndex=null,betDragPointerId=null;
 const keyName='bw_online_session_v2';
 function hasConfig(){return SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('PASTE_')&&SUPABASE_ANON_KEY.length>20&&!SUPABASE_ANON_KEY.includes('PASTE_')}
 function setLobby(s){$('lobbyStatus').textContent=s}function setStatus(s){$('status').textContent=s}
@@ -112,9 +112,11 @@ function renderAvailableBetChips(count,id='betAvailableChips',label='보유 중�
 function renderBetBoard(s){const board=$('betBoard');board.innerHTML='';const headers=['순서','내 베팅','내 타일','상대 타일','상대 베팅','결과'];headers.forEach(text=>{const cell=document.createElement('b');cell.className='bet-board-head';cell.textContent=text;board.appendChild(cell)});const ownWagers=Array.isArray(s.my_bet_wagers)?s.my_bet_wagers:[];const opponentWagers=Array.isArray(s.opponent_bet_wagers)?s.opponent_bet_wagers:[];const publicRounds=new Map((s.bet_history||[]).map(entry=>[Number(entry.round),entry]));for(let i=0;i<10;i++){const round=i+1,entry=publicRounds.get(round),ownStake=entry?(myRole==='host'?entry.host_wager:entry.guest_wager):ownWagers[i],opponentStake=entry?(myRole==='host'?entry.guest_wager:entry.host_wager):opponentWagers[i],opponentTile=entry?.opened?(myRole==='host'?entry.guest_tile:entry.host_tile):null,opponentTileColor=opponentTile!==null?(opponentTile%2===0?'black':'white'):round===s.round_no?s.opponent_current_tile_color:null,outcome=entry?(entry.winner==='draw'?'무승부':entry.winner===myRole?'승리':'패배'):'—';const cells=[String(round),String(ownStake??'—'),String(s.my_bet_order?.[i]??'?'),opponentTile===null?'?':String(opponentTile),String(opponentStake??'—'),outcome];cells.forEach((text,index)=>{const cell=document.createElement('span');cell.className='bet-board-cell'+(round===s.round_no&&s.bet_phase==='battle'?' current':'');cell.textContent=index===1||index===4?text==='—'?text:text+'칩':text;if(index===2&&s.my_bet_order?.[i]!==undefined)cell.classList.add(Number(s.my_bet_order[i])%2===0?'black':'white');if(index===3&&opponentTileColor){cell.classList.add(opponentTileColor);cell.title=opponentTile!==null?`상대 ${opponentTileColor==='black'?'검은':'흰'} 타일 ${opponentTile}번`:`상대 ${opponentTileColor==='black'?'검은':'흰'} 타일 (숫자 비공개)`;cell.setAttribute('aria-label',cell.title)}if(index===5&&entry)cell.classList.add(entry.winner==='draw'?'result-draw':entry.winner===myRole?'result-win':'result-loss');board.appendChild(cell)})}}
 function renderBetDecision(s){
  renderAvailableBetChips(s.my_bet_chips);
+ const wallet=Number(s.my_bet_chips)||0;
+ $('betAvailableChipsCount').textContent=`사용 가능한 보유 칩 총 ${wallet}개`;
  const area=$('betDecisionArea');
  area.classList.add('hidden');
- if(selectedRecoveryRound!==s.round_no){selectedRecoveryAmounts={};selectedRecoveryRound=s.round_no}
+ if(selectedRecoveryRound!==s.round_no){selectedRecoveryAmounts={};selectedRecoveryWalletAmount=null;selectedRecoveryRound=s.round_no}
  if(s.status!=='playing'||s.bet_phase!=='battle')return;
  const mineStake=Number(s.my_current_wager),opponentStake=Number(s.opponent_current_wager);
  if(!Number.isFinite(mineStake)||!Number.isFinite(opponentStake)||mineStake===opponentStake)return;
@@ -122,18 +124,24 @@ function renderBetDecision(s){
  const lowerRole=mineStake<opponentStake?myChipRole:(myChipRole==='host'?'guest':'host');
  if(lowerRole!==myRole)return;
  area.classList.remove('hidden');
- const deficit=opponentStake-mineStake,wallet=Number(s.my_bet_chips)||0,walletToUse=Math.min(wallet,deficit),recoveryNeeded=deficit-walletToUse;
- $('betDecisionHelp').textContent=`내 베팅 ${mineStake}칩 · 상대 베팅 ${opponentStake}칩. ${deficit}칩 부족분 중 보유 칩 ${walletToUse}칩을 먼저 사용합니다. 보유 칩 ${wallet}개.`;
+ const deficit=opponentStake-mineStake,walletMaximum=Math.min(wallet,deficit);
+ if(selectedRecoveryWalletAmount===null)selectedRecoveryWalletAmount=walletMaximum;
+ $('betDecisionHelp').textContent=`내 베팅 ${mineStake}칩 · 상대 베팅 ${opponentStake}칩. ${deficit}칩을 더 내야 합니다. 사용할 보유 칩과 타일별 회수량을 선택하세요. (보유 칩 ${wallet}개)`;
  const sources=[];
  for(let i=s.round_no;i<10;i++){const available=Number(s.my_bet_wagers?.[i]||0)-1;if(available>0)sources.push({round:i+1,tile:s.my_bet_order[i],available})}
- const recoveryList=$('betRecoveryTiles'),focusedRound=recoveryList.contains(document.activeElement)?document.activeElement.dataset.recoveryRound:null;
+ const recoveryList=$('betRecoveryTiles'),focusedField=recoveryList.contains(document.activeElement)?document.activeElement.dataset.recoveryField:null,focusedRound=recoveryList.contains(document.activeElement)?document.activeElement.dataset.recoveryRound:null;
  recoveryList.innerHTML='';
+ const walletLabel=document.createElement('label');walletLabel.className='bet-recovery-tile';
+ const walletDescription=document.createElement('span');walletDescription.textContent=`보유 칩 · 총 ${wallet}개 · 최대 ${walletMaximum}개`;
+ const walletInput=document.createElement('input');walletInput.type='number';walletInput.min='0';walletInput.max=String(walletMaximum);walletInput.step='1';walletInput.inputMode='numeric';walletInput.value=Number.isInteger(selectedRecoveryWalletAmount)?String(selectedRecoveryWalletAmount):'';walletInput.dataset.recoveryField='wallet';walletInput.setAttribute('aria-label',`보유 칩 ${wallet}개 중 사용할 칩 수`);walletInput.disabled=walletMaximum===0;
+ walletInput.addEventListener('input',()=>{let requested=Number(walletInput.value);if(walletInput.value!==''&&requested>walletMaximum){requested=walletMaximum;walletInput.value=String(requested)}if(walletInput.value!==''&&requested<0){requested=0;walletInput.value='0'}selectedRecoveryWalletAmount=walletInput.value===''?NaN:requested;updateRecoveryStatus()});
+ walletLabel.append(walletDescription,walletInput);recoveryList.appendChild(walletLabel);
  for(const source of sources){
   const label=document.createElement('label');label.className='bet-recovery-tile';
   const description=document.createElement('span');description.textContent=`${source.round}순서 · ${source.tile}번 타일 · 최대 ${source.available}칩`;
-  const input=document.createElement('input');input.type='number';input.min='0';input.max=String(Math.min(source.available,recoveryNeeded));input.step='1';input.inputMode='numeric';
+  const input=document.createElement('input');input.type='number';input.min='0';input.max=String(Math.min(source.available,deficit));input.step='1';input.inputMode='numeric';
   input.value=String(Math.min(Number(selectedRecoveryAmounts[source.round]||0),Number(input.max)));
-  input.dataset.recoveryRound=String(source.round);input.setAttribute('aria-label',`${source.round}순서 타일에서 회수할 칩 개수`);input.disabled=recoveryNeeded===0;
+  input.dataset.recoveryRound=String(source.round);input.setAttribute('aria-label',`${source.round}순서 타일에서 회수할 칩 개수`);
   selectedRecoveryAmounts[source.round]=Number(input.value);
   input.addEventListener('input',()=>{
    let requested=Number(input.value);
@@ -144,24 +152,27 @@ function renderBetDecision(s){
   });
   label.append(description,input);recoveryList.appendChild(label)
  }
+ if(focusedField==='wallet')recoveryList.querySelector('[data-recovery-field="wallet"]')?.focus();
  if(focusedRound)recoveryList.querySelector(`[data-recovery-round="${focusedRound}"]`)?.focus();
  function updateRecoveryStatus(){
-  const amountsValid=sources.every(source=>Number.isInteger(Number(selectedRecoveryAmounts[source.round]||0))&&Number(selectedRecoveryAmounts[source.round]||0)>=0&&Number(selectedRecoveryAmounts[source.round]||0)<=source.available);
+  const walletSelected=Number.isInteger(selectedRecoveryWalletAmount)?selectedRecoveryWalletAmount:0;
+  const walletValid=Number.isInteger(selectedRecoveryWalletAmount)&&selectedRecoveryWalletAmount>=0&&selectedRecoveryWalletAmount<=walletMaximum;
+  const amountsValid=walletValid&&sources.every(source=>Number.isInteger(Number(selectedRecoveryAmounts[source.round]||0))&&Number(selectedRecoveryAmounts[source.round]||0)>=0&&Number(selectedRecoveryAmounts[source.round]||0)<=source.available);
   const selectedRecoveryTotal=sources.reduce((sum,source)=>sum+Number(selectedRecoveryAmounts[source.round]||0),0);
   for(const input of recoveryList.querySelectorAll('input[data-recovery-round]')){
    const source=sources.find(item=>item.round===Number(input.dataset.recoveryRound));
    const selected=Number(selectedRecoveryAmounts[input.dataset.recoveryRound]||0);
    const otherTotal=selectedRecoveryTotal-selected;
-   input.max=String(Math.min(source.available,Math.max(0,recoveryNeeded-otherTotal)))
+   input.max=String(Math.min(source.available,Math.max(0,deficit-walletSelected-otherTotal)))
   }
-  const sufficient=walletToUse+selectedRecoveryTotal>=deficit;
-  const exact=recoveryNeeded===0||selectedRecoveryTotal===recoveryNeeded;
-  const canMatch=sufficient&&exact&&amountsValid;
+  const selectedTotal=walletSelected+selectedRecoveryTotal;
+  const canMatch=selectedTotal===deficit&&amountsValid;
   const summary=$('betRecoverySummary');
   summary.className='small '+(canMatch?'good':'bad');
-  if(recoveryNeeded===0)summary.textContent=`보유 칩에서 ${walletToUse}칩을 사용합니다. 타일별 회수량 합계 0/0칩.`;
-  else if(canMatch)summary.textContent=`타일별 회수량 합계 ${selectedRecoveryTotal}/${recoveryNeeded}칩`;
-  else summary.textContent=`추가로 ${Math.max(0,recoveryNeeded-selectedRecoveryTotal)}칩이 필요합니다. 타일별 회수량 합계 ${selectedRecoveryTotal}/${recoveryNeeded}칩. 각 타일은 최소 1칩 이상 남겨야 합니다.`;
+  if(!walletValid)summary.textContent=`보유 칩 사용량을 0~${walletMaximum}개 사이의 정수로 입력하세요. 타일별 회수량 ${selectedRecoveryTotal}칩.`;
+  else if(canMatch)summary.textContent=`부족분 ${deficit}칩 충당 완료 · 보유 칩 ${walletSelected}개 + 타일별 회수량 ${selectedRecoveryTotal}칩`;
+  else if(selectedTotal<deficit)summary.textContent=`추가로 ${deficit-selectedTotal}칩이 필요합니다. 보유 칩 ${walletSelected}개 · 타일별 회수량 ${selectedRecoveryTotal}/${deficit}칩.`;
+  else summary.textContent=`부족분 ${deficit}칩보다 ${selectedTotal-deficit}칩 초과했습니다. 보유 칩 ${walletSelected}개 · 타일별 회수량 ${selectedRecoveryTotal}칩.`;
   $('betMatchBtn').disabled=!canMatch||betActionBusy;
   $('betFoldBtn').disabled=betActionBusy
  }
@@ -188,9 +199,9 @@ function render(s){current=s;if(s.game_mode==='bw_bet'){renderBettingState(s);re
 }
 async function refresh(){if(!roomCode||!playerToken)return;try{const s=await rpc('bw_get_state',{p_code:roomCode,p_token:playerToken});render(s);if(s.status==='finished'&&polling){clearInterval(polling);polling=null}}catch(e){setStatus('상태 조회 오류: '+errText(e))}}
 async function startPolling(){if(polling)clearInterval(polling);await refresh();polling=setInterval(refresh,1200)}
-async function submitBetAction(action,recover=[]){if(betActionBusy||!current)return;const round=current.round_no;betActionBusy=true;try{await rpc('bw_bet_action',{p_code:roomCode,p_token:playerToken,p_action:action,p_round:round,p_recover_tiles:recover.map(item=>item.round),p_recover_amounts:recover.map(item=>item.amount)});selectedRecoveryAmounts={};selectedRecoveryRound=0;await refresh()}catch(e){setStatus(action==='fold'?'포기 처리 실패: '+errText(e):'베팅 처리 실패: '+errText(e))}finally{betActionBusy=false;if(current?.game_mode==='bw_bet')renderBettingState(current)}}
+async function submitBetAction(action,recover=[],walletSpend=null){if(betActionBusy||!current)return;const round=current.round_no;betActionBusy=true;try{await rpc('bw_bet_action',{p_code:roomCode,p_token:playerToken,p_action:action,p_round:round,p_recover_tiles:recover.map(item=>item.round),p_recover_amounts:recover.map(item=>item.amount),p_wallet_spend:walletSpend});selectedRecoveryAmounts={};selectedRecoveryWalletAmount=null;selectedRecoveryRound=0;await refresh()}catch(e){setStatus(action==='fold'?'포기 처리 실패: '+errText(e):'베팅 처리 실패: '+errText(e))}finally{betActionBusy=false;if(current?.game_mode==='bw_bet')renderBettingState(current)}}
 $('betPlanSubmit').onclick=async()=>{if(busy||!current)return;updateBetPlanTotal();if($('betPlanSubmit').disabled)return;busy=true;$('betPlanSubmit').disabled=true;try{await rpc('bw_bet_submit_plan',{p_code:roomCode,p_token:playerToken,p_order:betOrderDraft,p_wagers:betWagersDraft});await refresh()}catch(e){setStatus('타일 순서/베팅 확정 실패: '+errText(e));updateBetPlanTotal()}finally{busy=false;updateBetPlanTotal()}};
-$('betMatchBtn').onclick=()=>submitBetAction('match',Object.entries(selectedRecoveryAmounts).map(([round,amount])=>({round:Number(round),amount})).filter(item=>item.amount>0));
+$('betMatchBtn').onclick=()=>submitBetAction('match',Object.entries(selectedRecoveryAmounts).map(([round,amount])=>({round:Number(round),amount})).filter(item=>item.amount>0),selectedRecoveryWalletAmount);
 $('betFoldBtn').onclick=()=>submitBetAction('fold');
 $('createBtn').onclick=async()=>{if(busy)return;myAvatar=document.querySelector('.avatar-option.selected')?.dataset.avatar||'🕴️';betOrderDraft=[0,1,2,3,4,5,6,7,8,9];betWagersDraft=Array(10).fill(0);betSetupRendered=false;selectedRecoveryAmounts={};selectedRecoveryRound=0;busy=true;$('createBtn').disabled=true;try{myNick=safeName($('nickname').value);const s=await rpc('bw_create_room',{p_name:myNick,p_challenged_role:$('challengedRole').value,p_avatar:myAvatar,p_game_mode:$('gameMode').value});roomCode=s.code;playerToken=s.token;myRole='host';saveSession();$('roomCode').textContent=roomCode;$('inviteArea').classList.remove('hidden');showGame();await startPolling()}catch(e){setLobby('방 생성 실패: '+errText(e));$('setupWarning').classList.remove('hidden')}finally{busy=false;$('createBtn').disabled=false}};
 $('avatarOptions').querySelectorAll('.avatar-option').forEach(b=>b.onclick=()=>{$('avatarOptions').querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');myAvatar=b.dataset.avatar});$('joinBtn').onclick=()=>{const open=$('joinArea').classList.toggle('hidden')===false;if(open){$('challengedRoleWrap').classList.add('hidden');$('gameModeWrap').classList.add('hidden')}};
