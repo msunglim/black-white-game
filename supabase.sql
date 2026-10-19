@@ -183,7 +183,8 @@ begin
     'my_tiles',to_jsonb(array(select n from generate_series(0,8) n where not (case when v_role='host' then n=any(r.host_used) else n=any(r.guest_used) end) order by n)),
     'host_remaining_tiles',9-cardinality(r.host_used),'guest_remaining_tiles',9-cardinality(r.guest_used),
     'opponent_black_tiles',case when r.game_mode='bw1' then (select count(*) from generate_series(0,8) n where n%2=0 and not (case when v_role='host' then n=any(r.guest_used) else n=any(r.host_used) end)) else null end,
-    'opponent_white_tiles',case when r.game_mode='bw1' then (select count(*) from generate_series(0,8) n where n%2=1 and not (case when v_role='host' then n=any(r.guest_used) else n=any(r.host_used) end)) else null end,
+    'opponent_white_tiles',case when r.game_mode='bw1' then (select count(*) from generate_series(0,8) n where n%2=1 and not (case when v_role='host' then n=any(r.guest_used) else n=any(r.host_used) end)) else null end
+  ) || jsonb_build_object(
     'host_name',r.host_name,'guest_name',r.guest_name,'host_avatar',r.host_avatar,'guest_avatar',r.guest_avatar,'host_score',r.host_score,'guest_score',r.guest_score,
     'host_points',r.host_points,'guest_points',r.guest_points,'challenged_role',r.challenged_role,'starter_role',r.starter_role,
     'host_reaction',case when r.host_reaction->>'until' is not null and (r.host_reaction->>'until')::timestamptz>now() then r.host_reaction else null end,
