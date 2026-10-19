@@ -352,12 +352,13 @@ begin
 end $$;
 
 drop function if exists public.bw_bet_action(text,text,text,integer[]);
-create or replace function public.bw_bet_action(p_code text,p_token text,p_action text,p_round integer,p_recover_tiles integer[] default '{}')
+drop function if exists public.bw_bet_action(text,text,text,integer,integer[]);
+create or replace function public.bw_bet_action(p_code text,p_token text,p_action text,p_round integer,p_recover_tiles integer[] default '{}',p_recover_amounts integer[] default '{}')
 returns jsonb language plpgsql security definer set search_path=public,extensions,pg_temp as $$
 declare
   r public.bw_rooms%rowtype;
   v_role text; v_low_role text; v_winner_role text; v_outcome text;
-  v_index integer; v_tile integer; v_take integer; v_need integer; v_wallet integer;
+  v_index integer; v_tile integer; v_pos integer; v_take integer; v_need integer; v_wallet integer; v_wallet_spend integer; v_recovery_total integer;
   v_host_stake integer; v_guest_stake integer; v_pot integer;
   v_host_chips integer; v_guest_chips integer; v_host_wagers integer[]; v_guest_wagers integer[];
   v_revealed boolean[]; v_folded boolean[]; v_result jsonb; v_total integer; v_distinct integer;
@@ -395,35 +396,34 @@ begin
   if p_action='match' then
     v_need:=abs(v_host_stake-v_guest_stake);
     v_wallet:=case when v_low_role='host' then v_host_chips else v_guest_chips end;
+    v_recovery_total:=0;
+    if cardinality(coalesce(p_recover_tiles,'{}'::integer[]))<>cardinality(coalesce(p_recover_amounts,'{}'::integer[])) then
+      raise exception '회수할 타일과 칩 개수를 함께 지정해야 합니다.';
+    end if;
     if cardinality(coalesce(p_recover_tiles,'{}'::integer[]))<>(select count(distinct n) from unnest(coalesce(p_recover_tiles,'{}'::integer[])) n) then
       raise exception '회수할 타일을 중복 선택할 수 없습니다.';
     end if;
-    for v_tile in select unnest(coalesce(p_recover_tiles,'{}'::integer[])) loop
+    for v_pos in 1..cardinality(coalesce(p_recover_tiles,'{}'::integer[])) loop
+      v_tile:=p_recover_tiles[v_pos];
+      v_take:=p_recover_amounts[v_pos];
       if v_tile<1 or v_tile>10 or v_tile<=v_index then raise exception '회수할 타일은 아직 승부하지 않은 타일만 선택할 수 있습니다.'; end if;
+      if v_take is null or v_take<1 then raise exception '회수할 칩 개수는 타일별로 1개 이상 지정해야 합니다.'; end if;
       if v_low_role='host' then
-        if v_host_wagers[v_tile] is null or v_host_wagers[v_tile]<=1 then raise exception '선택한 타일은 최소 1칩을 남겨야 하므로 회수할 칩이 없습니다.'; end if;
+        if v_host_wagers[v_tile] is null or v_take>v_host_wagers[v_tile]-1 then raise exception '회수 후 해당 타일에는 최소 1칩을 남겨야 합니다.'; end if;
       else
-        if v_guest_wagers[v_tile] is null or v_guest_wagers[v_tile]<=1 then raise exception '선택한 타일은 최소 1칩을 남겨야 하므로 회수할 칩이 없습니다.'; end if;
+        if v_guest_wagers[v_tile] is null or v_take>v_guest_wagers[v_tile]-1 then raise exception '회수 후 해당 타일에는 최소 1칩을 남겨야 합니다.'; end if;
       end if;
+      v_recovery_total:=v_recovery_total+v_take;
     end loop;
-    if v_wallet< v_need then
-      select coalesce(sum(case when v_low_role='host' then v_host_wagers[n] else v_guest_wagers[n] end-1),0)
-        into v_total from unnest(coalesce(p_recover_tiles,'{}'::integer[])) n;
-      if v_wallet+v_total<v_need then raise exception '선택한 타일과 보유 칩으로는 상대 베팅에 맞출 수 없습니다. 더 많은 타일을 선택하거나 포기하세요.'; end if;
-    end if;
-    v_need:=v_need-v_wallet;
-    if v_low_role='host' then v_host_chips:=0; else v_guest_chips:=0; end if;
-    if v_need<0 then
-      if v_low_role='host' then v_host_chips:=-v_need; else v_guest_chips:=-v_need; end if;
-      v_need:=0;
-    end if;
-    for v_tile in select unnest(coalesce(p_recover_tiles,'{}'::integer[])) loop
-      exit when v_need=0;
-      v_take:=least(v_need,(case when v_low_role='host' then v_host_wagers[v_tile] else v_guest_wagers[v_tile] end)-1);
+    v_wallet_spend:=least(v_wallet,v_need);
+    v_need:=v_need-v_wallet_spend;
+    if v_recovery_total<>v_need then raise exception '타일별 회수 칩 합계는 필요한 %칩과 같아야 합니다.',v_need; end if;
+    if v_low_role='host' then v_host_chips:=v_host_chips-v_wallet_spend; else v_guest_chips:=v_guest_chips-v_wallet_spend; end if;
+    for v_pos in 1..cardinality(coalesce(p_recover_tiles,'{}'::integer[])) loop
+      v_tile:=p_recover_tiles[v_pos];
+      v_take:=p_recover_amounts[v_pos];
       if v_low_role='host' then v_host_wagers[v_tile]:=v_host_wagers[v_tile]-v_take; else v_guest_wagers[v_tile]:=v_guest_wagers[v_tile]-v_take; end if;
-      v_need:=v_need-v_take;
     end loop;
-    if v_need<>0 then raise exception '매치에 필요한 칩을 회수하지 못했습니다.'; end if;
     if v_low_role='host' then v_host_stake:=v_guest_stake; else v_guest_stake:=v_host_stake; end if;
     v_host_wagers[v_index]:=v_host_stake; v_guest_wagers[v_index]:=v_guest_stake;
   end if;
@@ -495,7 +495,7 @@ revoke all on function public.bw_choose_starter(text,text,text) from public;
 revoke all on function public.bw_get_state(text,text) from public;
 revoke all on function public.bw_submit_move(text,text,integer) from public;
 revoke all on function public.bw_bet_submit_plan(text,text,integer[],integer[]) from public;
-revoke all on function public.bw_bet_action(text,text,text,integer,integer[]) from public;
+revoke all on function public.bw_bet_action(text,text,text,integer,integer[],integer[]) from public;
 revoke all on function public.bw_set_reaction(text,text,text) from public;
 grant execute on function public.bw_create_room(text,text,text,text) to anon,authenticated;
 grant execute on function public.bw_join_room(text,text,text) to anon,authenticated;
@@ -503,5 +503,5 @@ grant execute on function public.bw_choose_starter(text,text,text) to anon,authe
 grant execute on function public.bw_get_state(text,text) to anon,authenticated;
 grant execute on function public.bw_submit_move(text,text,integer) to anon,authenticated;
 grant execute on function public.bw_bet_submit_plan(text,text,integer[],integer[]) to anon,authenticated;
-grant execute on function public.bw_bet_action(text,text,text,integer,integer[]) to anon,authenticated;
+grant execute on function public.bw_bet_action(text,text,text,integer,integer[],integer[]) to anon,authenticated;
 grant execute on function public.bw_set_reaction(text,text,text) to anon,authenticated;
