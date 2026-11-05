@@ -510,6 +510,33 @@ begin
   return jsonb_build_object('ok',true);
 end $$;
 
+create or replace function public.bw_restart_game(p_code text,p_token text)
+returns jsonb language plpgsql security definer set search_path=public,extensions,pg_temp as $$
+declare r public.bw_rooms%rowtype;
+begin
+  select * into r from public.bw_rooms where code=upper(trim(p_code)) for update;
+  if not found then raise exception '방을 찾을 수 없습니다.'; end if;
+  if p_token is distinct from r.host_token then raise exception '방장만 게임을 다시 시작할 수 있습니다.'; end if;
+  if r.status<>'finished' then raise exception '게임이 종료된 뒤에만 다시 시작할 수 있습니다.'; end if;
+  if r.guest_token is null then raise exception '상대가 참가한 방에서만 다시 시작할 수 있습니다.'; end if;
+
+  update public.bw_rooms set
+    status='playing',round_no=1,phase='main',starter_role=null,challenged_role='host',
+    host_score=0,guest_score=0,
+    host_points=case when game_mode='bw2' then 99 else 0 end,
+    guest_points=case when game_mode='bw2' then 99 else 0 end,
+    host_used='{}',guest_used='{}',host_pending=null,guest_pending=null,
+    history='[]'::jsonb,last_result=null,winner=null,
+    host_reaction=null,guest_reaction=null,
+    bet_phase='setup',host_bet_ready=false,guest_bet_ready=false,
+    host_bet_order='{}',guest_bet_order='{}',host_bet_wagers='{}',guest_bet_wagers='{}',
+    host_bet_chips=30,guest_bet_chips=30,
+    bet_revealed=array_fill(false,array[10]),bet_folded=array_fill(false,array[10]),
+    bet_history='[]'::jsonb
+  where id=r.id;
+  return jsonb_build_object('ok',true,'starter_picker','host');
+end $$;
+
 revoke all on function public.bw_create_room(text,text,text,text) from public;
 revoke all on function public.bw_join_room(text,text,text) from public;
 revoke all on function public.bw_choose_starter(text,text,text) from public;
@@ -518,6 +545,7 @@ revoke all on function public.bw_submit_move(text,text,integer) from public;
 revoke all on function public.bw_bet_submit_plan(text,text,integer[],integer[]) from public;
 revoke all on function public.bw_bet_action(text,text,text,integer,integer[],integer[],integer) from public;
 revoke all on function public.bw_set_reaction(text,text,text) from public;
+revoke all on function public.bw_restart_game(text,text) from public;
 grant execute on function public.bw_create_room(text,text,text,text) to anon,authenticated;
 grant execute on function public.bw_join_room(text,text,text) to anon,authenticated;
 grant execute on function public.bw_choose_starter(text,text,text) to anon,authenticated;
@@ -526,3 +554,4 @@ grant execute on function public.bw_submit_move(text,text,integer) to anon,authe
 grant execute on function public.bw_bet_submit_plan(text,text,integer[],integer[]) to anon,authenticated;
 grant execute on function public.bw_bet_action(text,text,text,integer,integer[],integer[],integer) to anon,authenticated;
 grant execute on function public.bw_set_reaction(text,text,text) to anon,authenticated;
+grant execute on function public.bw_restart_game(text,text) to anon,authenticated;
