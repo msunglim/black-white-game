@@ -26,6 +26,7 @@ input,select,button{font:inherit;border-radius:12px;border:1px solid var(--line)
 .bet-history-row{display:flex;flex-direction:column;align-items:stretch;gap:7px}.bet-history-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.bet-history-roundline{font-weight:750;line-height:1.5}.bet-history-stakes{padding-top:6px;border-top:1px solid var(--line);color:#c5c8d2;line-height:1.5}.bet-history-result{font-size:11px;white-space:nowrap}.bet-history-result.win{color:var(--green)}.bet-history-result.loss{color:#f1aaaa}.bet-history-result.draw{color:var(--gold)}
 .bet-board{display:flex;flex-direction:column;gap:8px}.bet-board-row{display:block;background:#12141a;border:1px solid var(--line);border-radius:10px;padding:8px}.bet-board-row.current{border-color:var(--gold);box-shadow:0 0 7px #e8c96a44}.bet-board-header,.bet-board-data{display:grid;grid-template-columns:minmax(62px,.7fr) minmax(0,1fr) minmax(0,1fr);align-items:center;gap:6px}.bet-board-header{padding:2px 4px 7px;border-bottom:1px solid var(--line);font-size:11px;color:var(--muted)}.bet-board-header span:not(:first-child){text-align:center;color:#f4f4f4;font-weight:750;overflow-wrap:anywhere}.bet-board-data{min-height:36px;padding:6px 4px 0;font-size:12px}.bet-board-data-label{color:var(--muted);font-size:11px}.bet-board-data span:not(:first-child){text-align:center}.bet-board-tile{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:27px;padding:0 6px;border:1px solid #777;border-radius:6px;font-weight:900}.bet-board-tile.black{background:#050609;color:#fff;border-color:#777}.bet-board-tile.white{background:#f4f4f4;color:#111;border-color:#ddd}.bet-board-tile.hidden-tile{background:#343741;color:#c5c8d2;border-color:#555966}.bet-board-result-row{border-top:1px solid var(--line);margin-top:5px;padding-top:5px}.bet-board-result{font-size:11px;font-weight:800}.bet-board-result.result-win{color:var(--green)}.bet-board-result.result-loss{color:#f1aaaa}.bet-board-result.result-draw{color:var(--gold)}.bet-recovery-tile input::placeholder{color:var(--muted);opacity:1}
 .bet-board-shortage{margin-top:7px;padding:7px 8px;border:1px solid #713b3b;border-radius:8px;background:#281919;color:#f1aaaa;font-size:12px;line-height:1.5}.bet-board-shortage.good{border-color:#356b49;background:#14271b;color:var(--green)}
+.set-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}.set-card{min-width:0;min-height:110px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;border:2px solid #5b5e69;border-radius:12px;background:#171920}.set-card.selected{border-color:var(--gold);box-shadow:0 0 0 2px #e8c96a55}.set-card:disabled{opacity:1}.set-card.selected:disabled{opacity:1}.set-card-bg-0{background:#090a0e;color:#fff}.set-card-bg-1{background:#777b85;color:#fff}.set-card-bg-2{background:#f4f4f4;color:#171820}.set-card-number{font-size:11px;font-weight:850}.set-symbol{width:30px;height:30px;background:var(--set-color);border-radius:50%}.set-shape-1{clip-path:polygon(50% 0,0 100%,100% 100%);border-radius:0}.set-shape-2{border-radius:3px}.set-shape-0{border-radius:50%}.set-status{display:flex;justify-content:space-between;align-items:center;gap:10px}.set-countdown{font-size:20px;font-weight:900;color:var(--gold);font-variant-numeric:tabular-nums}.set-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.set-actions button{padding:10px 6px}.set-claim-actions{display:flex;gap:8px;margin-top:8px}.set-claim-actions button{flex:1}.set-event-list{display:flex;flex-direction:column;gap:6px}.set-event{padding:8px 10px;border-radius:8px;background:#12141a;font-size:12px;line-height:1.5}.set-round-summary{display:flex;justify-content:space-between;gap:8px;padding:8px 10px;background:#12141a;border-radius:8px;font-size:12px}.set-round-summary span:last-child{text-align:right}
 </style>
 </head>
 <body><main>
@@ -68,13 +69,25 @@ input,select,button{font:inherit;border-radius:12px;border:1px solid var(--line)
     <li>9라운드 종료 시 동점이면 기존 포인트는 소멸하고, 각자 새로 33포인트를 받아 3라운드를 추가로 진행합니다.</li>
    </ol>
   </section>
+  <section id="rulesBwSet" class="hidden">
+   <p class="rules-intro">매 차례 9장의 그림에서 합을 찾아 점수를 얻고, 더는 합이 없을 때 결을 외치세요.</p>
+   <ol class="rules-list">
+    <li>모양(원·삼각형·사각형), 배경(검정·회색·하양), 도형 색(빨강·노랑·파랑)의 세 속성을 조합한 그림 27장 중 매 라운드 9장을 공개합니다.</li>
+    <li>방장이 첫 라운드 선 플레이어를 선택합니다. 이후 라운드 선 플레이어는 번갈아 바뀝니다. 각 차례에는 10초가 주어집니다.</li>
+    <li>합을 외치면 5초 안에 서로 다른 그림 번호 3개를 선택합니다. 세 속성 각각이 모두 같거나 모두 다르면 합입니다. 정답은 1점, 오답·이미 찾은 합 재호명·5초 내 미제출은 -1점입니다.</li>
+    <li>합을 외치지 않고 넘기거나 10초가 끝나면 상대 차례가 됩니다. 연속 6번 모두 넘기면 라운드를 종료합니다.</li>
+    <li>더는 찾지 않은 합이 없다고 생각하면 결을 외칩니다. 실제 남은 합이 없으면 3점을 얻고 라운드를 마칩니다. 합이 남아 있으면 1점을 잃고 상대 차례가 됩니다.</li>
+    <li>맞힌 합은 같은 라운드에서 다시 답할 수 없습니다. 그림 9장은 라운드가 끝날 때까지 그대로 공개됩니다.</li>
+    <li>총 10라운드 후 점수가 높은 플레이어가 승리합니다. 동점이면 같은 방식으로 10라운드씩 연장전을 반복합니다.</li>
+   </ol>
+  </section>
  </div>
 </dialog>
 <div class="panel score"><div class="score-player" id="myScorePanel"><div class="label" id="myNameLabel">나</div><div class="num" id="myScore">0</div><div class="label" id="myScoreCaption">승점</div></div><div class="vs">VS</div><div class="score-player" id="oppScorePanel"><div class="label" id="oppNameLabel">상대</div><div class="num" id="oppScore">0</div><div class="label" id="oppScoreCaption">승점</div></div></div>
 <section class="panel" id="lobby">
 <p class="title">온라인 대전</p><div class="small">닉네임을 정한 뒤 방을 만들거나 친구가 보낸 코드를 입력하세요.</div>
 <label class="small" for="nickname">내 닉네임</label><input id="nickname" maxlength="16" placeholder="예: 흑돌이" autocomplete="nickname"><div class="spacer"></div><div class="small">아바타 선택</div><div class="avatar-options" id="avatarOptions"><button type="button" class="avatar-option selected" data-avatar="🕴️" aria-label="정장">🕴️</button><button type="button" class="avatar-option" data-avatar="🕵️" aria-label="탐정">🕵️</button><button type="button" class="avatar-option" data-avatar="🎭" aria-label="가면">🎭</button><button type="button" class="avatar-option" data-avatar="👑" aria-label="왕관">👑</button><button type="button" class="avatar-option" data-avatar="🦊" aria-label="여우">🦊</button><button type="button" class="avatar-option" data-avatar="🐈‍⬛" aria-label="검은 고양이">🐈‍⬛</button><button type="button" class="avatar-option" data-avatar="♟️" aria-label="체스 말">♟️</button><button type="button" class="avatar-option" data-avatar="🃏" aria-label="조커">🃏</button></div>
-<div class="spacer"></div><div id="gameModeWrap"><label class="small" for="gameMode">게임 모드</label><select id="gameMode"><option value="bw2">흑과백2</option><option value="bw1">흑과백1</option><option value="bw_bet">베팅! 흑과백</option></select><div class="help">방을 만든 뒤에는 게임 모드를 변경할 수 없습니다.</div></div><div class="spacer"></div><div id="challengedRoleWrap"><label class="small" for="challengedRole">상대로 지목된 플레이어 (선공 결정권자)</label><select id="challengedRole"><option value="host">방 만든 사람</option><option value="guest">초대받은 사람</option></select><div class="help">방 생성자가 실제 데스매치 상황에 맞게 지정해 주세요. 두 사람이 입장한 뒤 이 플레이어가 1라운드 선 플레이어를 결정합니다.</div></div>
+<div class="spacer"></div><div id="gameModeWrap"><label class="small" for="gameMode">게임 모드</label><select id="gameMode"><option value="bw2">흑과백2</option><option value="bw1">흑과백1</option><option value="bw_bet">베팅! 흑과백</option><option value="bw_set">결! 합!</option></select><div class="help">방을 만든 뒤에는 게임 모드를 변경할 수 없습니다.</div></div><div class="spacer"></div><div id="challengedRoleWrap"><label class="small" for="challengedRole">상대로 지목된 플레이어 (선공 결정권자)</label><select id="challengedRole"><option value="host">방 만든 사람</option><option value="guest">초대받은 사람</option></select><div class="help">방 생성자가 실제 데스매치 상황에 맞게 지정해 주세요. 두 사람이 입장한 뒤 이 플레이어가 1라운드 선 플레이어를 결정합니다.</div></div>
 <div class="spacer"></div><div class="row"><button id="createBtn">방 만들기</button><button id="joinBtn" class="secondary">방 참가</button></div>
 <div id="joinArea" class="hidden"><div class="spacer"></div><label class="small" for="roomInput">초대 코드</label><input id="roomInput" maxlength="6" placeholder="예: A1B2C3" autocapitalize="characters"><div class="spacer"></div><button id="confirmJoin" style="width:100%">입장하기</button></div>
 <div id="inviteArea" class="hidden"><div class="spacer"></div><div class="small">친구에게 아래 코드 또는 초대 링크를 보내세요.</div><div id="roomCode" style="font-size:29px;font-weight:900;letter-spacing:.18em;margin:8px 0"></div><div class="row"><button id="copyLink" class="secondary">링크 복사</button><button id="copyCode" class="secondary">코드 복사</button></div></div>
@@ -85,6 +98,7 @@ input,select,button{font:inherit;border-radius:12px;border:1px solid var(--line)
 <div id="status" class="status">상태 확인 중…</div>
 <div id="gameInvite" class="panel hidden" style="margin:10px 0;padding:12px;background:#12141a"><div class="small">친구 초대 코드</div><div id="gameRoomCode" style="font-size:24px;font-weight:900;letter-spacing:.18em;margin:5px 0 9px"></div><div class="row"><button id="gameCopyLink" class="secondary">초대 링크 복사</button><button id="gameCopyCode" class="secondary">코드 복사</button></div></div>
 <div id="starterPanel" class="bidarea hidden"><p class="title">1라운드 선 플레이어 결정</p><div id="starterHelp" class="small"></div><div class="spacer"></div><div id="starterButtons" class="starterbuttons"><button data-starter="host">플레이어 1 선공</button><button data-starter="guest">플레이어 2 선공</button><button class="secondary" data-starter="coin">코인 토스</button></div></div>
+<section class="bidarea hidden" id="setGameArea"><div class="set-status"><strong id="setRoundLabel">ROUND 1</strong><span class="set-countdown" id="setCountdown">10</span></div><div class="small" id="setTurnStatus"></div><div class="set-board" id="setBoard" aria-label="공개된 그림 9장"></div><div class="set-actions"><button type="button" id="setClaimBtn">합!</button><button type="button" class="secondary" id="setConcludeBtn">결!</button><button type="button" class="secondary" id="setPassBtn">넘기기</button></div><div class="small" id="setSelectionHelp"></div><div class="set-claim-actions hidden" id="setSubmitActions"><button type="button" id="setSubmitBtn" disabled>선택한 3장 제출</button></div><div class="rule"></div><strong>이번 라운드 기록</strong><div class="set-event-list" id="setEventList"></div></section>
 <div class="timeline" id="roundTimeline" aria-label="라운드 진행 표시"></div><div class="spacer"></div><div class="playercards" id="playercards">
  <div class="playercard" id="hostCard"><div class="phead"><span class="reaction-bubble hidden" id="hostReaction"></span><span class="avatar" id="hostAvatar">🕴️</span><div class="pname" id="hostDisplayName">플레이어 1</div><span class="victory">승점 <b id="hostScoreMini">0</b></span></div><div class="points"><span id="hostPoints">99</span><span class="label"> 포인트</span></div><div class="small">남은 포인트 표시등</div><div class="lights" id="hostLights"></div><div class="lightlegend">범위별 표시등</div><div class="bidrow"><span class="muted" id="hostBidLabel">이번 제시</span><span id="hostBid" class="bid-chip empty">—</span></div></div>
  <div class="playercard" id="guestCard"><div class="phead"><span class="reaction-bubble hidden" id="guestReaction"></span><span class="avatar" id="guestAvatar">🕵️</span><div class="pname" id="guestDisplayName">플레이어 2</div><span class="victory">승점 <b id="guestScoreMini">0</b></span></div><div class="points"><span id="guestPoints">99</span><span class="label"> 포인트</span></div><div class="small">남은 포인트 표시등</div><div class="lights" id="guestLights"></div><div class="lightlegend">범위별 표시등</div><div class="bidrow"><span class="muted" id="guestBidLabel">이번 제시</span><span id="guestBid" class="bid-chip empty">—</span></div></div>
@@ -107,13 +121,13 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const SUPABASE_URL = 'https://njhslhzehvcjrhqrzist.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_5VZAH_BjewErc6p_usr_fg_6sH2BFc4';
 const $ = id => document.getElementById(id==='liveHistoryTitle'?'historyTitle':id==='liveHistory'?'history':id);
-let sb=null,roomCode='',playerToken='',myRole='',myNick='',myAvatar='🕴️',current=null,polling=null,busy=false,selectedTileValue=null;
+let sb=null,roomCode='',playerToken='',myRole='',myNick='',myAvatar='🕴️',current=null,polling=null,busy=false,selectedTileValue=null,selectedSetCards=[],setActionBusy=false;
 let betOrderDraft=[0,1,2,3,4,5,6,7,8,9],betWagersDraft=Array(10).fill(0),betSetupRendered=false,betActionBusy=false,selectedRecoveryAmounts={},selectedRecoveryWalletAmount=0,selectedRecoveryRound=0,betDragIndex=null,betDragPointerId=null;
 const keyName='bw_online_session_v2';
 function hasConfig(){return SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('PASTE_')&&SUPABASE_ANON_KEY.length>20&&!SUPABASE_ANON_KEY.includes('PASTE_')}
 function setLobby(s){$('lobbyStatus').textContent=s}function setStatus(s){$('status').textContent=s}
 function safeName(s){return(s||'플레이어').trim().slice(0,16)||'플레이어'}
-function setRulesMode(mode){const rules={bw_bet:{id:'rulesBwBet',title:'베팅! 흑과 백 규칙'},bw1:{id:'rulesBw1',title:'흑과 백 1 규칙'},bw2:{id:'rulesBw2',title:'흑과 백 2 규칙'}};const selected=rules[mode]||rules[$('gameMode').value]||rules.bw2;for(const rule of Object.values(rules))$(rule.id).classList.toggle('hidden',rule!==selected);$('rulesDialogTitle').textContent=selected.title;$('rulesOpen').textContent=selected.title}
+function setRulesMode(mode){const rules={bw_bet:{id:'rulesBwBet',title:'베팅! 흑과 백 규칙'},bw1:{id:'rulesBw1',title:'흑과 백 1 규칙'},bw2:{id:'rulesBw2',title:'흑과 백 2 규칙'},bw_set:{id:'rulesBwSet',title:'결! 합! 규칙'}};const selected=rules[mode]||rules[$('gameMode').value]||rules.bw2;for(const rule of Object.values(rules))$(rule.id).classList.toggle('hidden',rule!==selected);$('rulesDialogTitle').textContent=selected.title;$('rulesOpen').textContent=selected.title}
 function openRulesDialog(){if(!$('rulesDialog').open)$('rulesDialog').showModal()}
 function saveSession(){localStorage.setItem(keyName,JSON.stringify({roomCode,playerToken,myRole,myNick,myAvatar}))}
 function loadSession(){try{const x=JSON.parse(localStorage.getItem(keyName)||'null');if(x?.roomCode&&x?.playerToken){roomCode=x.roomCode;playerToken=x.playerToken;myRole=x.myRole;myNick=x.myNick;myAvatar=x.myAvatar||'🕴️';return true}}catch{}return false}
@@ -160,8 +174,9 @@ function renderHistory(history,finished,role,state){
 }
 function renderRoundOutcome(state){
  const history=state.bet_history||[];
- const result=state.game_mode==='bw_bet'?history[history.length-1]:state.last_result;
- const outcome=result?.winner;
+const setEvent=[...(state.set_events||[])].reverse().find(event=>event.action!=='claim_started');
+const result=state.game_mode==='bw_bet'?history[history.length-1]:state.game_mode==='bw_set'?setEvent:state.last_result;
+const outcome=state.game_mode==='bw_set'?(state.status==='finished'?state.winner:result?.winner||'draw'):result?.winner;
  const classes=['outcome-win','outcome-loss','outcome-draw'];
  for(const role of ['host','guest']){
   const resultClass=outcome==='draw'?'outcome-draw':outcome===role?'outcome-win':outcome?'outcome-loss':'';
@@ -170,13 +185,13 @@ function renderRoundOutcome(state){
    if(resultClass)element.classList.add(resultClass)
   }
  }
- function announceRoundResult(state){
-  renderRoundOutcome(state);
-  $('restartBtn').classList.toggle('hidden',state.status!=='finished'||myRole!=='host');
-  $('historyTitle').textContent=state.status==='finished'
-   ?(state.game_mode==='bw1'?'게임 종료 로그 · 양쪽 타일 공개':'게임 종료 로그')
-   :(state.game_mode==='bw1'?'진행 로그 · 상대 숫자는 비공개':'진행 로그 · 상대 제시 숫자는 비공개')
- }
+}
+function announceRoundResult(state){
+ renderRoundOutcome(state);
+ $('restartBtn').classList.toggle('hidden',state.status!=='finished'||myRole!=='host');
+ $('historyTitle').textContent=state.status==='finished'
+  ?(state.game_mode==='bw1'?'게임 종료 로그 · 양쪽 타일 공개':state.game_mode==='bw_set'?'게임 종료 로그 · 결! 합!':'게임 종료 로그')
+  :(state.game_mode==='bw1'?'진행 로그 · 상대 숫자는 비공개':state.game_mode==='bw_set'?'라운드 기록 · 결! 합!':'진행 로그 · 상대 제시 숫자는 비공개')
 }
 function renderLiveHistory(history,finished,role,state){
  const target=$('history');target.innerHTML='';
@@ -184,6 +199,85 @@ function renderLiveHistory(history,finished,role,state){
  if(!finished&&state&&state.status==='playing'){rows.unshift({phase:state.phase,round:state.round_no,winner:null,host_chip_color:state.host_chip_color,guest_chip_color:state.guest_chip_color,my_number:state.my_pending,completed:false});}
  if(!rows.length){target.innerHTML='<div class="help">라운드가 진행되면 각자의 칩 색상과 내 제시 포인트가 여기에 기록됩니다.</div>';return}
  rows.forEach(v=>{const d=document.createElement('div');d.className='history-item';const left=document.createElement('div');left.style.display='flex';left.style.flexDirection='column';left.style.gap='4px';const label=document.createElement('b');label.textContent=(v.phase==='tiebreak'?'연장 ':'ROUND ')+v.round;const own=document.createElement('span');own.className='muted';const ownNumber=(v.my_number!==null&&v.my_number!==undefined)?v.my_number:(finished?(role==='host'?v.host_number:v.guest_number):undefined);own.textContent=ownNumber!==undefined&&ownNumber!==null?`내 제시: ${ownNumber}${state?.game_mode==='bw1'?'번 타일':'점'}`:'내 제시: 아직 제출 전';left.append(label,own);const right=document.createElement('div');right.style.display='flex';right.style.flexDirection='column';right.style.alignItems='flex-end';right.style.gap='4px';const chips=document.createElement('span');chips.className='history-bids';const hc=v.host_chip_color||(v.completed&&v.host_number!==undefined?(state?.game_mode==='bw1'?(Number(v.host_number)%2===0?'black':'white'):(Number(v.host_number)<10?'black':'white')):null);const gc=v.guest_chip_color||(v.completed&&v.guest_number!==undefined?(state?.game_mode==='bw1'?(Number(v.guest_number)%2===0?'black':'white'):(Number(v.guest_number)<10?'black':'white')):null);chips.append(makeChip(hc,hc?'':'—'),document.createTextNode(' : '),makeChip(gc,gc?'':'—'));const note=document.createElement('span');note.className='muted';const hostName=state?.host_name||'플레이어 1',guestName=state?.guest_name||'플레이어 2';note.textContent=v.winner==='draw'?'무승부':v.winner==='host'?`${hostName} 승리 · +1점`:v.winner==='guest'?`${guestName} 승리 · +1점`:state?.opponent_submitted?'상대 제출 완료 · 결과 처리 중':'상대가 고르는 중…';right.append(chips,note);d.append(label,left,right);target.appendChild(d)})
+}
+
+function drawSetCard(cardNumber,selected,disabled){
+ const card=document.createElement('button');card.type='button';card.className=`set-card set-card-bg-${Math.floor(cardNumber/3)%3}${selected?' selected':''}`;card.disabled=disabled;
+ const symbol=document.createElement('span');symbol.className=`set-symbol set-shape-${cardNumber%3}`;symbol.style.setProperty('--set-color',['#f04444','#ffd233','#3184ff'][Math.floor(cardNumber/9)]);
+ const label=document.createElement('span');label.className='set-card-number';label.textContent=String(cardNumber+1);
+ card.append(symbol,label);card.setAttribute('aria-label',`그림 ${cardNumber+1}`);return card
+}
+function setEventText(event,state){
+ const actor=event.actor==='host'?(state.host_name||'플레이어 1'):(state.guest_name||'플레이어 2');
+ const actions={
+  claim_started:`${actor}: 합! (번호 선택 중)`,
+  set_correct:`${actor}: 합 정답 ${event.numbers?.join(', ')} · +1점`,
+  set_wrong:`${actor}: 합 오답 ${event.numbers?.join(', ')} · -1점`,
+  claim_timeout:`${actor}: 5초 내 제출하지 못함 · -1점`,
+  conclude_correct:`${actor}: 결 정답 · +3점`,
+  conclude_wrong:`${actor}: 결 오답 · -1점`,
+  pass:`${actor}: 넘기기`,
+  timeout_pass:`${actor}: 시간 초과 · 넘기기`
+ };
+ return actions[event.action]||`${actor}: ${event.action}`
+}
+function renderSetLog(state){
+ const box=$('setEventList');box.replaceChildren();
+ for(const round of [...(state.history||[])].reverse()){
+  const row=document.createElement('div');row.className='set-round-summary';
+  const label=document.createElement('span');label.textContent=`${round.phase==='tiebreak'?'연장 ':''}ROUND ${round.round}`;
+  const score=document.createElement('span');score.textContent=`${round.host_score} : ${round.guest_score} · ${round.events?.length||0}회 행동`;
+  row.append(label,score);box.appendChild(row)
+  for(const event of [...(round.events||[])].reverse()){
+   const detail=document.createElement('div');detail.className='set-event';detail.textContent=`${label.textContent} · ${setEventText(event,state)}`;box.appendChild(detail)
+  }
+ }
+ if(state.status!=='finished'){
+  for(const event of [...(state.set_events||[])].reverse()){
+   const row=document.createElement('div');row.className='set-event';row.textContent=setEventText(event,state);box.appendChild(row)
+  }
+ }
+ if(!box.childElementCount){const empty=document.createElement('div');empty.className='help';empty.textContent='아직 이번 라운드 행동이 없습니다.';box.appendChild(empty)}
+}
+function renderSetGame(state){
+ const mine=myRole==='host';
+ if(state.set_claim_role!==myRole)selectedSetCards=[];
+ $('playercards').classList.add('hidden');$('roundTimeline').classList.add('hidden');$('betSetupArea').classList.add('hidden');$('betBattleArea').classList.add('hidden');$('betHistoryArea').classList.add('hidden');$('bidArea').classList.add('hidden');$('starterPanel').classList.toggle('hidden',!!state.starter_role||state.status==='finished'||!state.guest_name);$('gameRuleHint').classList.add('hidden');$('reactionControls').classList.toggle('hidden',state.status==='finished');$('setGameArea').classList.remove('hidden');
+ $('historyTitle').classList.add('hidden');$('history').classList.add('hidden');$('gameRoomCode').textContent=roomCode;$('gameInvite').classList.toggle('hidden',!(mine&&state.status==='waiting'));
+ $('starterButtons').classList.toggle('hidden',myRole!=='host');$('starterHelp').textContent=myRole==='host'?'방장이 첫 라운드 선 플레이어를 선택하세요.':'방장이 첫 라운드 선 플레이어를 선택하기를 기다리는 중입니다.';$('starterButtons').querySelector('[data-starter=host]').textContent=(state.host_name||'플레이어 1')+' 선공';$('starterButtons').querySelector('[data-starter=guest]').textContent=(state.guest_name||'플레이어 2')+' 선공';
+ $('myNameLabel').textContent=myNick||'나';$('oppNameLabel').textContent=(mine?state.guest_name:state.host_name)||'상대';$('myScoreCaption').textContent='승점';$('oppScoreCaption').textContent='승점';$('myScore').textContent=mine?state.host_score:state.guest_score;$('oppScore').textContent=mine?state.guest_score:state.host_score;
+ $('roundLabel').textContent=state.status==='finished'?'결! 합! · 게임 종료':`결! 합! · ${state.phase==='tiebreak'?'연장 ':''}ROUND ${state.round_no}/10`;
+ $('setRoundLabel').textContent=`${state.phase==='tiebreak'?'연장 ':''}ROUND ${state.round_no} · 연속 넘기기 ${state.set_pass_streak||0}/6`;
+ const claimant=state.set_claim_role;
+ $('setTurnStatus').textContent=state.status==='finished'?(state.winner==='draw'?'게임 종료 · 무승부':`게임 종료 · ${state.winner==='host'?state.host_name:state.guest_name} 승리`):!state.starter_role?state.guest_name?'방장이 선 플레이어를 정하면 시작합니다.':'상대가 방에 참가하기를 기다립니다.':claimant?`${claimant==='host'?state.host_name:state.guest_name}이(가) 합을 외쳤습니다. 5초 안에 그림 3장을 고르세요.`:state.turn_role===myRole?'내 차례입니다. 10초 안에 합/결을 외치거나 넘기세요.':`${state.turn_role==='host'?state.host_name:state.guest_name} 차례입니다.`;
+ setStatus(state.status==='finished'?$('setTurnStatus').textContent:!state.starter_role?'방장이 첫 선 플레이어를 결정하기를 기다리는 중입니다.':claimant?$('setTurnStatus').textContent:state.turn_role===myRole?'내 차례입니다. 합/결을 외치거나 넘기세요.':`${state.turn_role==='host'?state.host_name:state.guest_name} 차례를 기다리는 중입니다.`);
+ const deadline=claimant?state.set_claim_deadline:state.set_turn_deadline;
+ $('setCountdown').textContent=state.status==='playing'&&deadline?String(Math.max(0,Math.ceil(Number(deadline)-Date.now()/1000))):'—';
+ const canAct=state.status==='playing'&&!!state.starter_role&&state.turn_role===myRole&&!setActionBusy;
+ const choosing=claimant===myRole;
+ $('setClaimBtn').disabled=!canAct||!!claimant;$('setConcludeBtn').disabled=!canAct||!!claimant;$('setPassBtn').disabled=!canAct||!!claimant;
+ $('setClaimBtn').classList.toggle('hidden',!!claimant);$('setConcludeBtn').classList.toggle('hidden',!!claimant);$('setPassBtn').classList.toggle('hidden',!!claimant);
+ $('setSubmitActions').classList.toggle('hidden',!claimant);$('setSelectionHelp').textContent=claimant?(choosing?`선택 ${selectedSetCards.length}/3 · 남은 시간 ${$('setCountdown').textContent}초`:'상대가 3장의 번호를 선택하고 있습니다.'):'그림 번호는 카드를 눌러 선택합니다.';
+ $('setSubmitBtn').disabled=!choosing||selectedSetCards.length!==3||setActionBusy;
+ const board=$('setBoard');board.replaceChildren();
+ (state.set_board||[]).forEach((cardNumber,index)=>{
+  const position=index+1,button=drawSetCard(cardNumber,selectedSetCards.includes(position),!choosing||selectedSetCards.length>=3&&!selectedSetCards.includes(position));
+  button.querySelector('.set-card-number').textContent=String(position);
+  button.onclick=()=>{selectedSetCards=selectedSetCards.includes(position)?selectedSetCards.filter(n=>n!==position):[...selectedSetCards,position];renderSetGame(current)};
+  board.appendChild(button)
+ });
+ renderSetLog(state);
+ $('historyTitle').textContent=state.status==='finished'?'게임 종료 로그 · 결! 합!':'라운드 기록 · 결! 합!';
+ $('history').innerHTML='';
+ renderRoundOutcome(state);
+ $('restartBtn').classList.toggle('hidden',state.status!=='finished'||myRole!=='host')
+}
+async function setGameAction(action,cards=[]){
+ if(setActionBusy||!current||current.status!=='playing')return;
+ setActionBusy=true;renderSetGame(current);
+ try{await rpc('bw_set_action',{p_code:roomCode,p_token:playerToken,p_action:action,p_cards:cards});selectedSetCards=[];await refresh()}
+ catch(e){setStatus('결! 합! 처리 오류: '+errText(e))}
+ finally{setActionBusy=false;if(current?.game_mode==='bw_set')renderSetGame(current)}
 }
 
 function renderTimeline(s){const el=$('roundTimeline');el.innerHTML='';for(let i=1;i<=9;i++){const d=document.createElement('div');d.className='roundstep'+(i<s.round_no?' done':'')+(i===s.round_no&&s.phase!=='tiebreak'&&s.status!=='finished'?' active':'');d.textContent=i+'R';el.appendChild(d)}if(s.phase==='tiebreak'){for(let i=1;i<=(s.game_mode==='bw1'?9:3);i++){const d=document.createElement('div');d.className='roundstep'+(i<s.round_no?' done':'')+(i===s.round_no&&s.status!=='finished'?' active':'');d.textContent='延'+i;el.appendChild(d)}}}
@@ -321,7 +415,7 @@ function renderBetDecision(s){
 }
 function renderBettingState(s){const mine=myRole==='host';$('gameRoomCode').textContent=roomCode;$('gameInvite').classList.toggle('hidden',!(mine&&s.status==='waiting'));$('myNameLabel').textContent=myNick||'나';$('oppNameLabel').textContent=(mine?s.guest_name:s.host_name)||'상대';$('myScoreCaption').textContent='보유 칩';$('oppScoreCaption').textContent='보유 칩';$('myScore').textContent=Number(s.my_bet_chips||0)+(s.my_bet_wagers||[]).reduce((sum,n)=>sum+Number(n||0),0);$('oppScore').textContent=Number(s.opponent_bet_chips||0)+(s.opponent_bet_wagers||[]).reduce((sum,n)=>sum+Number(n||0),0);$('roundLabel').textContent=s.status==='finished'?'게임 종료':s.bet_phase==='battle'?`베팅! 흑과 백 · ${s.round_no}/10`:'베팅! 흑과 백 · 준비';$('playercards').classList.add('hidden');$('roundTimeline').classList.add('hidden');$('betSetupArea').classList.toggle('hidden',s.bet_phase!=='setup'||s.my_bet_ready);$('betBattleArea').classList.toggle('hidden',s.bet_phase!=='battle'&&s.status!=='finished');$('betHistoryArea').classList.add('hidden');$('reactionControls').classList.toggle('hidden',s.status==='finished');$('liveHistoryTitle').classList.add('hidden');$('liveHistory').classList.add('hidden');$('historyTitle').classList.add('hidden');$('history').classList.add('hidden');$('bidArea').classList.add('hidden');$('starterPanel').classList.add('hidden');$('resultBanner').classList.add('hidden');$('gameRuleHint').classList.add('hidden');$('betBattleStatus').textContent='';if(!s.my_bet_ready){if(!betSetupRendered){drawBetPlan();betSetupRendered=true}setStatus(s.status==='waiting'?'상대가 입장하기를 기다립니다. 타일 순서와 베팅은 미리 확정할 수 있습니다.':'타일 순서와 베팅을 정하고 확정하세요.');return}if(s.bet_phase==='setup'){setStatus(s.opponent_bet_ready?'상대의 베팅 확정을 처리하고 있습니다.':'내 계획은 확정되었습니다. 상대가 타일 순서와 베팅을 마칠 때까지 기다리세요.');$('betBattleStatus').textContent=s.opponent_bet_ready?'두 사람의 계획이 확정되었습니다. 승부를 준비합니다.':'상대 계획은 아직 비공개입니다.';return}renderBetBoard(s);renderBetHistory(s.bet_history,s);renderBetDecision(s);const myInventory=Number(s.my_bet_chips||0)+(s.my_bet_wagers||[]).reduce((sum,n)=>sum+Number(n||0),0),opInventory=Number(s.opponent_bet_chips||0)+(s.opponent_bet_wagers||[]).reduce((sum,n)=>sum+Number(n||0),0);if(s.status==='finished'){const outcome=s.winner==='draw'?'무승부':s.winner===myRole?'승리':'패배';setStatus(`게임 종료 — ${outcome}. 최종 칩 ${myInventory} : ${opInventory}`);$('betBattleStatus').textContent=`10개 타일의 승부가 끝났습니다. 최종 칩 ${myInventory} : ${opInventory}`;return}const mineStake=Number(s.my_current_wager),opponentStake=Number(s.opponent_current_wager);$('betBattleTitle').textContent=`${s.round_no}번째 타일 승부`;if(mineStake===opponentStake){setStatus(`${s.round_no}번째 타일을 공개하는 중입니다.`);$('betBattleStatus').textContent=`두 사람 모두 ${mineStake}칩을 베팅했습니다. 타일을 공개합니다.`;if(!betActionBusy)void revealEqualBet(s);return}const lowRole=mineStake<opponentStake?myRole:(myRole==='host'?'guest':'host');setStatus(lowRole===myRole?'상대 베팅과 맞추거나 포기할 수 있습니다.':'상대가 베팅을 맞추거나 포기하기를 기다리는 중입니다.');$('betBattleStatus').textContent=lowRole===myRole?'내 타일에 베팅한 칩이 적습니다. 상대 베팅을 맞추거나 포기하세요.':`${lowRole==='host'?s.host_name:s.guest_name}가 칩을 맞추거나 포기하기를 기다립니다.`}
 async function revealEqualBet(s){if(betActionBusy||s.status!=='playing'||s.game_mode!=='bw_bet'||s.my_current_wager!==s.opponent_current_wager)return;betActionBusy=true;try{await rpc('bw_bet_action',{p_code:roomCode,p_token:playerToken,p_action:'reveal',p_round:s.round_no,p_recover_tiles:[]});await refresh()}catch(e){setStatus('타일 공개 오류: '+errText(e))}finally{betActionBusy=false}}
-function render(s){current=s;setRulesMode(s.game_mode);announceRoundResult(s);if(s.game_mode==='bw_bet'){renderBettingState(s);return}$('playercards').classList.remove('hidden');$('roundTimeline').classList.remove('hidden');$('betSetupArea').classList.add('hidden');$('betBattleArea').classList.add('hidden');$('betHistoryArea').classList.add('hidden');$('reactionControls').classList.remove('hidden');$('liveHistoryTitle').classList.remove('hidden');$('liveHistory').classList.remove('hidden');$('historyTitle').classList.remove('hidden');$('history').classList.remove('hidden');$('gameRuleHint').classList.remove('hidden');const mine=myRole==='host';$('gameRoomCode').textContent=roomCode;$('gameInvite').classList.toggle('hidden',!(mine&&(s.status==='waiting'||(s.status==='playing'&&!s.starter_role))));const myScore=mine?s.host_score:s.guest_score,oppScore=mine?s.guest_score:s.host_score;$('myNameLabel').textContent=myNick||'나';$('oppNameLabel').textContent=(mine?s.guest_name:s.host_name)||'상대';$('myNameLabel').nextElementSibling.nextElementSibling.textContent='승점';$('oppNameLabel').nextElementSibling.nextElementSibling.textContent='승점';$('myScore').textContent=myScore;$('oppScore').textContent=oppScore;
+function render(s){current=s;setRulesMode(s.game_mode);announceRoundResult(s);if(s.game_mode==='bw_set'){renderSetGame(s);return}if(s.game_mode==='bw_bet'){renderBettingState(s);return}$('setGameArea').classList.add('hidden');$('playercards').classList.remove('hidden');$('roundTimeline').classList.remove('hidden');$('betSetupArea').classList.add('hidden');$('betBattleArea').classList.add('hidden');$('betHistoryArea').classList.add('hidden');$('reactionControls').classList.remove('hidden');$('liveHistoryTitle').classList.remove('hidden');$('liveHistory').classList.remove('hidden');$('historyTitle').classList.remove('hidden');$('history').classList.remove('hidden');$('gameRuleHint').classList.remove('hidden');const mine=myRole==='host';$('gameRoomCode').textContent=roomCode;$('gameInvite').classList.toggle('hidden',!(mine&&(s.status==='waiting'||(s.status==='playing'&&!s.starter_role))));const myScore=mine?s.host_score:s.guest_score,oppScore=mine?s.guest_score:s.host_score;$('myNameLabel').textContent=myNick||'나';$('oppNameLabel').textContent=(mine?s.guest_name:s.host_name)||'상대';$('myNameLabel').nextElementSibling.nextElementSibling.textContent='승점';$('oppNameLabel').nextElementSibling.nextElementSibling.textContent='승점';$('myScore').textContent=myScore;$('oppScore').textContent=oppScore;
  $('roundLabel').textContent=s.status==='finished'?'게임 종료':(s.game_mode==='bw1'?'흑과 백 1 · ':'흑과 백 2 · ')+(s.phase==='tiebreak'?`연장 ${s.round_no} / ${s.game_mode==='bw1'?'09':'03'}`:`ROUND ${s.round_no} / 09`);
  $('bw1Tiles').classList.toggle('hidden',s.game_mode!=='bw1');$('bw2Input').classList.toggle('hidden',s.game_mode==='bw1');$('gameRuleHint').textContent=s.game_mode==='bw1'?'숫자 타일 색상: 0, 2, 4, 6, 8은 검정색 / 1, 3, 5, 7은 흰색입니다. 상대가 아직 선택하지 않은 타일은 색상만 표시됩니다.':'한 자릿수(0–9)는 검은색, 두 자릿수(10 이상)는 흰색 칩으로 표시됩니다. 포인트는 제시 즉시 차감되며, 표시등은 상대가 제시하기 전에도 갱신됩니다.';if(s.game_mode==='bw1'){renderOpponentTiles(s);drawTiles(s)}
  $('hostDisplayName').textContent=(s.host_name||'플레이어 1')+(s.starter_role==='host'?' · 선공':'');$('guestDisplayName').textContent=(s.guest_name||'플레이어 2')+(s.starter_role==='guest'?' · 선공':'');$('hostScoreMini').textContent=s.host_score;$('guestScoreMini').textContent=s.guest_score;$('hostAvatar').textContent=s.host_avatar||'🕴️';$('guestAvatar').textContent=s.guest_avatar||'🕵️';renderReaction('hostReaction',s.host_reaction);renderReaction('guestReaction',s.guest_reaction);$('hostCard').classList.toggle('my-turn',s.status==='playing'&&s.turn_role==='host');$('guestCard').classList.toggle('my-turn',s.status==='playing'&&s.turn_role==='guest');renderTimeline(s); $('hostPoints').textContent=s.game_mode==='bw1'?(s.host_remaining_tiles??9)+'장':((s.status==='finished'||mine)?s.host_points:'비공개');$('guestPoints').textContent=s.game_mode==='bw1'?(s.guest_remaining_tiles??9)+'장':((s.status==='finished'||!mine)?s.guest_points:'비공개');$('hostCard').querySelector('.points').classList.toggle('hidden',s.game_mode==='bw1');$('guestCard').querySelector('.points').classList.toggle('hidden',s.game_mode==='bw1');$('hostCard').querySelector('.small').classList.toggle('hidden',s.game_mode==='bw1');$('guestCard').querySelector('.small').classList.toggle('hidden',s.game_mode==='bw1');$('hostBidLabel').textContent=s.game_mode==='bw1'?'상대 타일':'최근/이번 칩';$('guestBidLabel').textContent=s.game_mode==='bw1'?'상대 타일':'최근/이번 칩';$('hostCard').querySelector('.bidrow').classList.toggle('hidden',s.game_mode==='bw1'&&s.status==='finished');$('guestCard').querySelector('.bidrow').classList.toggle('hidden',s.game_mode==='bw1'&&s.status==='finished');$('hostLights').classList.toggle('hidden',s.game_mode==='bw1');$('guestLights').classList.toggle('hidden',s.game_mode==='bw1');$('hostCard').querySelector('.lightlegend').classList.toggle('hidden',s.game_mode==='bw1');$('guestCard').querySelector('.lightlegend').classList.toggle('hidden',s.game_mode==='bw1');drawLights('hostLights',s.host_points);drawLights('guestLights',s.guest_points);setBidChip('hostBid',s.status==='finished'&&s.game_mode==='bw1'&&s.last_result?.host_number!==undefined?(Number(s.last_result.host_number)%2===0?'black':'white'):s.host_chip_color);setBidChip('guestBid',s.status==='finished'&&s.game_mode==='bw1'&&s.last_result?.guest_number!==undefined?(Number(s.last_result.guest_number)%2===0?'black':'white'):s.guest_chip_color);
@@ -338,7 +432,7 @@ function render(s){current=s;setRulesMode(s.game_mode);announceRoundResult(s);if
  else{setStatus(s.winner==='draw'?'게임 종료 — 최종 무승부':s.winner===myRole?'게임 종료 — 최종 승리!':'게임 종료 — 최종 패배');bidArea.classList.add('hidden')}
  if(s.status==='finished')bidArea.classList.add('hidden');if(!canSubmit){$('submitBtn').disabled=true;if(!s.my_submitted&&s.turn_role!==myRole)$('bidInput').disabled=true}$('liveHistoryTitle').textContent=s.game_mode==='bw1'?'진행 로그 · 상대 숫자는 비공개':'진행 로그 · 상대 제시 숫자는 비공개';$('historyTitle').textContent=s.game_mode==='bw1'?'게임 종료 로그 · 상대 숫자 비공개':'게임 종료 로그';renderLiveHistory(s.history||[],s.status==='finished',myRole,s);renderHistory(s.history||[],s.status==='finished',myRole,s)
 }
-async function refresh(){if(!roomCode||!playerToken)return;try{const s=await rpc('bw_get_state',{p_code:roomCode,p_token:playerToken});if(current?.status==='finished'&&s.status==='playing'){betOrderDraft=[0,1,2,3,4,5,6,7,8,9];betWagersDraft=Array(10).fill(0);betSetupRendered=false;selectedTileValue=null;selectedRecoveryAmounts={};selectedRecoveryWalletAmount=0;selectedRecoveryRound=0;$('bidInput').value=''}render(s)}catch(e){setStatus('상태 조회 오류: '+errText(e))}}
+async function refresh(){if(!roomCode||!playerToken)return;try{let s=await rpc('bw_get_state',{p_code:roomCode,p_token:playerToken});if(s.game_mode==='bw_set'&&s.status==='playing'){await rpc('bw_set_action',{p_code:roomCode,p_token:playerToken,p_action:'tick',p_cards:[]});s=await rpc('bw_get_state',{p_code:roomCode,p_token:playerToken})}if(current?.status==='finished'&&s.status==='playing'){betOrderDraft=[0,1,2,3,4,5,6,7,8,9];betWagersDraft=Array(10).fill(0);betSetupRendered=false;selectedTileValue=null;selectedSetCards=[];selectedRecoveryAmounts={};selectedRecoveryWalletAmount=0;selectedRecoveryRound=0;$('bidInput').value=''}render(s)}catch(e){setStatus('상태 조회 오류: '+errText(e))}}
 async function startPolling(){if(polling)clearInterval(polling);await refresh();polling=setInterval(refresh,1200)}
 async function submitBetAction(action,recover=[],walletSpend=null){if(betActionBusy||!current)return;const round=current.round_no;betActionBusy=true;try{await rpc('bw_bet_action',{p_code:roomCode,p_token:playerToken,p_action:action,p_round:round,p_recover_tiles:recover.map(item=>item.round),p_recover_amounts:recover.map(item=>item.amount),p_wallet_spend:walletSpend});selectedRecoveryAmounts={};selectedRecoveryWalletAmount=0;selectedRecoveryRound=0;await refresh()}catch(e){setStatus(action==='fold'?'포기 처리 실패: '+errText(e):'베팅 처리 실패: '+errText(e))}finally{betActionBusy=false;if(current?.game_mode==='bw_bet')renderBettingState(current)}}
 $('betPlanSubmit').onclick=async()=>{if(busy||!current)return;updateBetPlanTotal();if($('betPlanSubmit').disabled)return;busy=true;$('betPlanSubmit').disabled=true;try{await rpc('bw_bet_submit_plan',{p_code:roomCode,p_token:playerToken,p_order:betOrderDraft,p_wagers:betWagersDraft});await refresh()}catch(e){setStatus('타일 순서/베팅 확정 실패: '+errText(e));updateBetPlanTotal()}finally{busy=false;updateBetPlanTotal()}};
@@ -348,9 +442,13 @@ $('rulesOpen').onclick=openRulesDialog;
 $('gameRulesOpen').onclick=openRulesDialog;
 $('rulesClose').onclick=()=>$('rulesDialog').close();
 $('rulesDialog').addEventListener('click',event=>{if(event.target===$('rulesDialog'))$('rulesDialog').close()});
+$('setClaimBtn').onclick=()=>setGameAction('claim');
+$('setConcludeBtn').onclick=()=>setGameAction('conclude');
+$('setPassBtn').onclick=()=>setGameAction('pass');
+$('setSubmitBtn').onclick=()=>setGameAction('submit',selectedSetCards);
 $('createBtn').onclick=async()=>{if(busy)return;myAvatar=document.querySelector('.avatar-option.selected')?.dataset.avatar||'🕴️';betOrderDraft=[0,1,2,3,4,5,6,7,8,9];betWagersDraft=Array(10).fill(0);betSetupRendered=false;selectedRecoveryAmounts={};selectedRecoveryWalletAmount=0;selectedRecoveryRound=0;busy=true;$('createBtn').disabled=true;try{myNick=safeName($('nickname').value);const s=await rpc('bw_create_room',{p_name:myNick,p_challenged_role:$('challengedRole').value,p_avatar:myAvatar,p_game_mode:$('gameMode').value});roomCode=s.code;playerToken=s.token;myRole='host';saveSession();$('roomCode').textContent=roomCode;$('inviteArea').classList.remove('hidden');showGame();await startPolling()}catch(e){setLobby('방 생성 실패: '+errText(e));$('setupWarning').classList.remove('hidden')}finally{busy=false;$('createBtn').disabled=false}};
 $('avatarOptions').querySelectorAll('.avatar-option').forEach(b=>b.onclick=()=>{$('avatarOptions').querySelectorAll('.avatar-option').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');myAvatar=b.dataset.avatar});$('joinBtn').onclick=()=>{const open=$('joinArea').classList.toggle('hidden')===false;if(open){$('challengedRoleWrap').classList.add('hidden');$('gameModeWrap').classList.add('hidden')}};
-$('gameMode').addEventListener('change',()=>{$('challengedRoleWrap').classList.toggle('hidden',$('gameMode').value==='bw_bet');setRulesMode($('gameMode').value)});
+$('gameMode').addEventListener('change',()=>{$('challengedRoleWrap').classList.toggle('hidden',['bw_bet','bw_set'].includes($('gameMode').value));setRulesMode($('gameMode').value)});
 $('confirmJoin').onclick=async()=>{if(busy)return;myAvatar=document.querySelector('.avatar-option.selected')?.dataset.avatar||'🕴️';betOrderDraft=[0,1,2,3,4,5,6,7,8,9];betWagersDraft=Array(10).fill(0);betSetupRendered=false;selectedRecoveryAmounts={};selectedRecoveryWalletAmount=0;selectedRecoveryRound=0;busy=true;$('confirmJoin').disabled=true;try{myNick=safeName($('nickname').value);roomCode=$('roomInput').value.trim().toUpperCase();const s=await rpc('bw_join_room',{p_code:roomCode,p_name:myNick,p_avatar:myAvatar});playerToken=s.token;myRole='guest';saveSession();showGame();await startPolling()}catch(e){setLobby('입장 실패: '+errText(e))}finally{busy=false;$('confirmJoin').disabled=false}};
 $('starterButtons').querySelectorAll('button[data-starter]').forEach(b=>b.onclick=async()=>{if(busy)return;busy=true;$('starterButtons').querySelectorAll('button').forEach(x=>x.disabled=true);try{await rpc('bw_choose_starter',{p_code:roomCode,p_token:playerToken,p_starter:b.dataset.starter});await refresh()}catch(e){setStatus('선공 결정 실패: '+errText(e))}finally{busy=false;$('starterButtons').querySelectorAll('button').forEach(x=>x.disabled=false)}});
 $('bidInput').addEventListener('input',()=>{const input=$('bidInput');const max=Number(input.max);if(input.value!==''&&Number(input.value)>max)input.value=String(max);const n=input.value===''?0:Number(input.value);$('submitBtn').disabled=!current||!Number.isInteger(n)||n<0||n>max||current.status!=='playing'||current.turn_role!==myRole||current.my_submitted});
