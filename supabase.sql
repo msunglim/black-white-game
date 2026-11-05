@@ -201,7 +201,7 @@ begin
       when r.status='finished' and r.guest_pending is not null then case when (r.guest_pending % 2=0 and r.game_mode='bw1') or (r.guest_pending < 10 and r.game_mode='bw2') then 'black' else 'white' end
       when r.guest_pending is not null then case when (r.guest_pending % 2=0 and r.game_mode='bw1') or (r.guest_pending < 10 and r.game_mode='bw2') then 'black' else 'white' end
       else null end,
-    'history',case when r.game_mode='bw_bet' then r.bet_history when r.status='finished' and r.game_mode<>'bw1' then r.history else coalesce((
+    'history',case when r.game_mode='bw_bet' then r.bet_history when r.status='finished' then r.history else coalesce((
       select jsonb_agg(jsonb_build_object(
         'phase',e.value->'phase','round',e.value->'round','winner',e.value->'winner',
         'host_chip_color',case when (r.game_mode='bw1' and (e.value->>'host_number')::integer % 2=0) or (r.game_mode='bw2' and (e.value->>'host_number')::integer < 10) then 'black' else 'white' end,
@@ -300,8 +300,8 @@ begin
     'host_points_after',r.host_points,'guest_points_after',r.guest_points,'next_starter',v_next_starter);
   v_history:=r.history || jsonb_build_array(v_result);
 
-  -- 5승 선취 시 즉시 종료
-  if v_host_score>=5 or v_guest_score>=5 then
+  -- 본 게임에서만 5승 선취 시 즉시 종료하고, 연장전은 3라운드를 모두 진행합니다.
+  if r.phase='main' and (v_host_score>=5 or v_guest_score>=5) then
     v_final_winner:=case when v_host_score>v_guest_score then 'host' else 'guest' end;
     update public.bw_rooms set host_score=v_host_score,guest_score=v_guest_score,history=v_history,last_result=v_result,
       host_pending=null,guest_pending=null,starter_role=v_next_starter,status='finished',winner=v_final_winner where id=r.id;
