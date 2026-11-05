@@ -88,6 +88,17 @@ alter table public.bw_rooms add column if not exists set_claim_deadline timestam
 alter table public.bw_rooms add column if not exists set_pass_streak integer not null default 0;
 alter table public.bw_rooms drop constraint if exists bw_rooms_game_mode_check;
 alter table public.bw_rooms add constraint bw_rooms_game_mode_check check (game_mode in ('bw1','bw2','bw_bet','bw_set'));
+-- Running rooms switch to the first-call starter rule; repair any board left empty by the old starter flow.
+update public.bw_rooms
+set set_board=case when cardinality(set_board)=9 then set_board else (
+  select array_agg(card_id order by random())
+  from (select generate_series(0,26) as card_id order by random() limit 9) cards
+) end,
+set_found_sets=case when cardinality(set_board)=9 then set_found_sets else '[]'::jsonb end,
+set_events=case when cardinality(set_board)=9 then set_events else '[]'::jsonb end,
+set_pass_streak=case when cardinality(set_board)=9 then set_pass_streak else 0 end,
+starter_role=null,set_turn_role=null,set_turn_deadline=null,set_claim_role=null,set_claim_deadline=null
+where game_mode='bw_set' and status='playing' and guest_token is not null;
 create index if not exists bw_rooms_code_idx on public.bw_rooms(code);
 alter table public.bw_rooms enable row level security;
 revoke all on public.bw_rooms from anon, authenticated;
@@ -119,20 +130,29 @@ end $$;
 
 create or replace function public.bw_join_room(p_code text,p_name text,p_avatar text)
 returns jsonb language plpgsql security definer set search_path=public,extensions,pg_temp as $$
-declare r public.bw_rooms%rowtype; v_token text; v_name text;
+declare r public.bw_rooms%rowtype; v_token text; v_name text; v_board integer[];
 begin
   select * into r from public.bw_rooms where code=upper(trim(p_code)) for update;
   if not found then raise exception '방을 찾을 수 없습니다. 초대 코드를 확인하세요.'; end if;
   if r.status <> 'waiting' or r.guest_token is not null then raise exception '이미 시작했거나 두 명이 참가한 방입니다.'; end if;
   v_token := encode(extensions.gen_random_bytes(24),'hex');
   v_name := left(coalesce(nullif(trim(p_name),''),'플레이어 2'),16);
-  update public.bw_rooms set guest_name=v_name,guest_token=v_token,guest_avatar=coalesce(nullif(p_avatar,''),'🕵️'),status='playing' where id=r.id;
+  if r.game_mode='bw_set' then
+    select array_agg(card_id order by random()) into v_board
+    from (select generate_series(0,26) as card_id order by random() limit 9) cards;
+    update public.bw_rooms set guest_name=v_name,guest_token=v_token,guest_avatar=coalesce(nullif(p_avatar,''),'🕵️'),
+      status='playing',set_board=v_board,set_turn_role=null,set_turn_deadline=null,
+      set_claim_role=null,set_claim_deadline=null,set_found_sets='[]'::jsonb,set_events='[]'::jsonb,set_pass_streak=0
+    where id=r.id;
+  else
+    update public.bw_rooms set guest_name=v_name,guest_token=v_token,guest_avatar=coalesce(nullif(p_avatar,''),'🕵️'),status='playing' where id=r.id;
+  end if;
   return jsonb_build_object('code',r.code,'token',v_token);
 end $$;
 
 create or replace function public.bw_choose_starter(p_code text,p_token text,p_starter text)
 returns jsonb language plpgsql security definer set search_path=public,extensions,pg_temp as $$
-declare r public.bw_rooms%rowtype; v_role text; v_starter text; v_board integer[];
+declare r public.bw_rooms%rowtype; v_role text; v_starter text;
 begin
   select * into r from public.bw_rooms where code=upper(trim(p_code)) for update;
   if not found then raise exception '방을 찾을 수 없습니다.'; end if;
@@ -141,21 +161,13 @@ begin
   else raise exception '이 방의 참가자 토큰이 아닙니다.'; end if;
   if r.status <> 'playing' then raise exception '상대가 입장한 뒤 선공을 정할 수 있습니다.'; end if;
   if r.game_mode='bw_bet' then raise exception '베팅! 흑과 백은 선공 선택이 필요하지 않습니다.'; end if;
+  if r.game_mode='bw_set' then raise exception '결! 합!은 매 라운드 먼저 합 또는 결을 외친 플레이어가 선공입니다.'; end if;
   if r.starter_role is not null then raise exception '선공이 이미 결정되었습니다.'; end if;
   if v_role <> r.challenged_role then raise exception '상대로 지목된 플레이어만 선공을 결정할 수 있습니다.'; end if;
   if p_starter in ('host','guest') then v_starter:=p_starter;
   elsif p_starter='coin' then v_starter:=case when random()<0.5 then 'host' else 'guest' end;
   else raise exception '선공 선택 값이 올바르지 않습니다.'; end if;
-  if r.game_mode='bw_set' then
-    select array_agg(card_id order by random()) into v_board
-    from (select generate_series(0,26) as card_id order by random() limit 9) cards;
-    update public.bw_rooms set starter_role=v_starter,set_turn_role=v_starter,
-      set_turn_deadline=now()+interval '10 seconds',set_board=v_board,
-      set_found_sets='[]'::jsonb,set_events='[]'::jsonb,set_pass_streak=0
-    where id=r.id;
-  else
-    update public.bw_rooms set starter_role=v_starter where id=r.id;
-  end if;
+  update public.bw_rooms set starter_role=v_starter where id=r.id;
   return jsonb_build_object('ok',true,'starter_role',v_starter);
 end $$;
 
@@ -196,7 +208,6 @@ create or replace function public.bw_set_finish_round(p_code text,p_reason text)
 returns jsonb language plpgsql security definer set search_path=public,extensions,pg_temp as $$
 declare
   r public.bw_rooms%rowtype;
-  v_next_starter text;
   v_board integer[];
   v_winner text;
   v_next_round integer;
@@ -204,13 +215,12 @@ declare
 begin
   select * into r from public.bw_rooms where code=upper(trim(p_code)) for update;
   if not found or r.game_mode<>'bw_set' or r.status<>'playing' then raise exception '결! 합! 라운드를 종료할 수 있는 상태가 아닙니다.'; end if;
-  v_next_starter:=case when r.starter_role='host' then 'guest' else 'host' end;
   if r.round_no>=10 then
     if r.host_score<>r.guest_score then
       v_winner:=case when r.host_score>r.guest_score then 'host' else 'guest' end;
       update public.bw_rooms set
         history=history||jsonb_build_array(jsonb_build_object('phase',r.phase,'round',r.round_no,'board',r.set_board,'events',r.set_events,'host_score',r.host_score,'guest_score',r.guest_score,'reason',p_reason)),
-        status='finished',winner=v_winner,set_turn_role=null,set_turn_deadline=null,set_claim_role=null,set_claim_deadline=null
+        status='finished',winner=v_winner,starter_role=null,set_turn_role=null,set_turn_deadline=null,set_claim_role=null,set_claim_deadline=null
       where id=r.id;
       return jsonb_build_object('ok',true,'round_finished',true,'game_finished',true,'winner',v_winner);
     end if;
@@ -222,9 +232,9 @@ begin
   from (select generate_series(0,26) as card_id order by random() limit 9) cards;
   update public.bw_rooms set
     history=history||jsonb_build_array(jsonb_build_object('phase',r.phase,'round',r.round_no,'board',r.set_board,'events',r.set_events,'host_score',r.host_score,'guest_score',r.guest_score,'reason',p_reason)),
-    phase=v_next_phase,round_no=v_next_round,starter_role=v_next_starter,
-    set_board=v_board,set_found_sets='[]'::jsonb,set_events='[]'::jsonb,set_turn_role=v_next_starter,
-    set_turn_deadline=now()+interval '10 seconds',set_claim_role=null,set_claim_deadline=null,set_pass_streak=0
+    phase=v_next_phase,round_no=v_next_round,starter_role=null,
+    set_board=v_board,set_found_sets='[]'::jsonb,set_events='[]'::jsonb,set_turn_role=null,
+    set_turn_deadline=null,set_claim_role=null,set_claim_deadline=null,set_pass_streak=0
   where id=r.id;
   return jsonb_build_object('ok',true,'round_finished',true,'game_finished',false);
 end $$;
@@ -241,7 +251,21 @@ begin
   if p_token=r.host_token then v_role:='host';
   elsif p_token=r.guest_token and r.guest_token is not null then v_role:='guest';
   else raise exception '이 방의 참가자 토큰이 아닙니다.'; end if;
-  if r.game_mode<>'bw_set' or r.status<>'playing' or r.starter_role is null then raise exception '결! 합! 게임이 진행 중이 아닙니다.'; end if;
+  if r.game_mode<>'bw_set' or r.status<>'playing' then raise exception '결! 합! 게임이 진행 중이 아닙니다.'; end if;
+  if p_action='tick' and r.starter_role is null then
+    return jsonb_build_object('ok',true,'expired',false);
+  end if;
+  if r.starter_role is null then
+    if p_action not in ('claim','conclude') then
+      raise exception '이번 라운드에는 먼저 합 또는 결을 외쳐 선공을 정하세요.';
+    end if;
+    update public.bw_rooms set starter_role=v_role,set_turn_role=v_role,
+      set_turn_deadline=now()+interval '10 seconds'
+    where id=r.id;
+    r.starter_role:=v_role;
+    r.set_turn_role:=v_role;
+    r.set_turn_deadline:=now()+interval '10 seconds';
+  end if;
   v_other:=case when r.set_turn_role='host' then 'guest' else 'host' end;
 
   if p_action='tick' then
@@ -711,13 +735,17 @@ end $$;
 
 create or replace function public.bw_restart_game(p_code text,p_token text)
 returns jsonb language plpgsql security definer set search_path=public,extensions,pg_temp as $$
-declare r public.bw_rooms%rowtype;
+declare r public.bw_rooms%rowtype; v_board integer[];
 begin
   select * into r from public.bw_rooms where code=upper(trim(p_code)) for update;
   if not found then raise exception '방을 찾을 수 없습니다.'; end if;
   if p_token is distinct from r.host_token then raise exception '방장만 게임을 다시 시작할 수 있습니다.'; end if;
   if r.status<>'finished' then raise exception '게임이 종료된 뒤에만 다시 시작할 수 있습니다.'; end if;
   if r.guest_token is null then raise exception '상대가 참가한 방에서만 다시 시작할 수 있습니다.'; end if;
+  if r.game_mode='bw_set' then
+    select array_agg(card_id order by random()) into v_board
+    from (select generate_series(0,26) as card_id order by random() limit 9) cards;
+  end if;
 
   update public.bw_rooms set
     status='playing',round_no=1,phase='main',starter_role=null,challenged_role='host',
@@ -732,10 +760,10 @@ begin
     host_bet_chips=30,guest_bet_chips=30,
     bet_revealed=array_fill(false,array[10]),bet_folded=array_fill(false,array[10]),
     bet_history='[]'::jsonb,
-    set_board='{}',set_found_sets='[]'::jsonb,set_events='[]'::jsonb,set_turn_role=null,
+    set_board=coalesce(v_board,'{}'),set_found_sets='[]'::jsonb,set_events='[]'::jsonb,set_turn_role=null,
     set_turn_deadline=null,set_claim_role=null,set_claim_deadline=null,set_pass_streak=0
   where id=r.id;
-  return jsonb_build_object('ok',true,'starter_picker','host');
+  return jsonb_build_object('ok',true,'starter_picker',case when r.game_mode='bw_set' then null else 'host' end);
 end $$;
 
 revoke all on function public.bw_create_room(text,text,text,text) from public;

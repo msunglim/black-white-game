@@ -73,7 +73,7 @@ input,select,button{font:inherit;border-radius:12px;border:1px solid var(--line)
    <p class="rules-intro">매 차례 9장의 그림에서 합을 찾아 점수를 얻고, 더는 합이 없을 때 결을 외치세요.</p>
    <ol class="rules-list">
     <li>모양(원·삼각형·사각형), 배경(검정·회색·하양), 도형 색(빨강·노랑·파랑)의 세 속성을 조합한 그림 27장 중 매 라운드 9장을 공개합니다.</li>
-    <li>방장이 첫 라운드 선 플레이어를 선택합니다. 이후 라운드 선 플레이어는 번갈아 바뀝니다. 각 차례에는 10초가 주어집니다.</li>
+    <li>매 라운드가 시작되면 두 플레이어 중 먼저 합 또는 결을 외친 플레이어가 해당 라운드의 선공이 됩니다. 이후에는 플레이어가 번갈아 행동하며, 각 차례에는 10초가 주어집니다.</li>
     <li>합을 외치면 5초 안에 서로 다른 그림 번호 3개를 선택합니다. 세 속성 각각이 모두 같거나 모두 다르면 합입니다. 정답은 1점, 오답·이미 찾은 합 재호명·5초 내 미제출은 -1점입니다.</li>
     <li>합을 외치지 않고 넘기거나 10초가 끝나면 상대 차례가 됩니다. 연속 6번 모두 넘기면 라운드를 종료합니다.</li>
     <li>더는 찾지 않은 합이 없다고 생각하면 결을 외칩니다. 실제 남은 합이 없으면 3점을 얻고 라운드를 마칩니다. 합이 남아 있으면 1점을 잃고 상대 차례가 됩니다.</li>
@@ -121,7 +121,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const SUPABASE_URL = 'https://njhslhzehvcjrhqrzist.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_5VZAH_BjewErc6p_usr_fg_6sH2BFc4';
 const $ = id => document.getElementById(id==='liveHistoryTitle'?'historyTitle':id==='liveHistory'?'history':id);
-let sb=null,roomCode='',playerToken='',myRole='',myNick='',myAvatar='🕴️',current=null,polling=null,busy=false,selectedTileValue=null,selectedSetCards=[],setActionBusy=false;
+let sb=null,roomCode='',playerToken='',myRole='',myNick='',myAvatar='🕴️',current=null,polling=null,refreshing=false,busy=false,selectedTileValue=null,selectedSetCards=[],setActionBusy=false;
 let betOrderDraft=[0,1,2,3,4,5,6,7,8,9],betWagersDraft=Array(10).fill(0),betSetupRendered=false,betActionBusy=false,selectedRecoveryAmounts={},selectedRecoveryWalletAmount=0,selectedRecoveryRound=0,betDragIndex=null,betDragPointerId=null;
 const keyName='bw_online_session_v2';
 function hasConfig(){return SUPABASE_URL.startsWith('https://')&&!SUPABASE_URL.includes('PASTE_')&&SUPABASE_ANON_KEY.length>20&&!SUPABASE_ANON_KEY.includes('PASTE_')}
@@ -242,20 +242,21 @@ function renderSetLog(state){
 function renderSetGame(state){
  const mine=myRole==='host';
  if(state.set_claim_role!==myRole)selectedSetCards=[];
- $('playercards').classList.add('hidden');$('roundTimeline').classList.add('hidden');$('betSetupArea').classList.add('hidden');$('betBattleArea').classList.add('hidden');$('betHistoryArea').classList.add('hidden');$('bidArea').classList.add('hidden');$('starterPanel').classList.toggle('hidden',!!state.starter_role||state.status==='finished'||!state.guest_name);$('gameRuleHint').classList.add('hidden');$('reactionControls').classList.toggle('hidden',state.status==='finished');$('setGameArea').classList.remove('hidden');
+ $('playercards').classList.add('hidden');$('roundTimeline').classList.add('hidden');$('betSetupArea').classList.add('hidden');$('betBattleArea').classList.add('hidden');$('betHistoryArea').classList.add('hidden');$('bidArea').classList.add('hidden');$('starterPanel').classList.add('hidden');$('gameRuleHint').classList.add('hidden');$('reactionControls').classList.toggle('hidden',state.status==='finished');$('setGameArea').classList.remove('hidden');
  $('historyTitle').classList.add('hidden');$('history').classList.add('hidden');$('gameRoomCode').textContent=roomCode;$('gameInvite').classList.toggle('hidden',!(mine&&state.status==='waiting'));
- $('starterButtons').classList.toggle('hidden',myRole!=='host');$('starterHelp').textContent=myRole==='host'?'방장이 첫 라운드 선 플레이어를 선택하세요.':'방장이 첫 라운드 선 플레이어를 선택하기를 기다리는 중입니다.';$('starterButtons').querySelector('[data-starter=host]').textContent=(state.host_name||'플레이어 1')+' 선공';$('starterButtons').querySelector('[data-starter=guest]').textContent=(state.guest_name||'플레이어 2')+' 선공';
  $('myNameLabel').textContent=myNick||'나';$('oppNameLabel').textContent=(mine?state.guest_name:state.host_name)||'상대';$('myScoreCaption').textContent='승점';$('oppScoreCaption').textContent='승점';$('myScore').textContent=mine?state.host_score:state.guest_score;$('oppScore').textContent=mine?state.guest_score:state.host_score;
  $('roundLabel').textContent=state.status==='finished'?'결! 합! · 게임 종료':`결! 합! · ${state.phase==='tiebreak'?'연장 ':''}ROUND ${state.round_no}/10`;
  $('setRoundLabel').textContent=`${state.phase==='tiebreak'?'연장 ':''}ROUND ${state.round_no} · 연속 넘기기 ${state.set_pass_streak||0}/6`;
  const claimant=state.set_claim_role;
- $('setTurnStatus').textContent=state.status==='finished'?(state.winner==='draw'?'게임 종료 · 무승부':`게임 종료 · ${state.winner==='host'?state.host_name:state.guest_name} 승리`):!state.starter_role?state.guest_name?'방장이 선 플레이어를 정하면 시작합니다.':'상대가 방에 참가하기를 기다립니다.':claimant?`${claimant==='host'?state.host_name:state.guest_name}이(가) 합을 외쳤습니다. 5초 안에 그림 3장을 고르세요.`:state.turn_role===myRole?'내 차례입니다. 10초 안에 합/결을 외치거나 넘기세요.':`${state.turn_role==='host'?state.host_name:state.guest_name} 차례입니다.`;
- setStatus(state.status==='finished'?$('setTurnStatus').textContent:!state.starter_role?'방장이 첫 선 플레이어를 결정하기를 기다리는 중입니다.':claimant?$('setTurnStatus').textContent:state.turn_role===myRole?'내 차례입니다. 합/결을 외치거나 넘기세요.':`${state.turn_role==='host'?state.host_name:state.guest_name} 차례를 기다리는 중입니다.`);
+ const waitingForOpponent=state.status==='waiting'||!state.guest_name;
+ const waitingForFirstCall=state.status==='playing'&&!state.starter_role&&!waitingForOpponent;
+ $('setTurnStatus').textContent=state.status==='finished'?(state.winner==='draw'?'게임 종료 · 무승부':`게임 종료 · ${state.winner==='host'?state.host_name:state.guest_name} 승리`):waitingForOpponent?'상대가 방에 참가하기를 기다리는 중입니다.':waitingForFirstCall?'이번 라운드의 첫 합/결을 기다립니다. 먼저 외친 플레이어가 선공입니다.':claimant?`${claimant==='host'?state.host_name:state.guest_name}이(가) 합을 외쳤습니다. 5초 안에 그림 3장을 고르세요.`:state.turn_role===myRole?'내 차례입니다. 10초 안에 합/결을 외치거나 넘기세요.':`${state.turn_role==='host'?state.host_name:state.guest_name} 차례입니다.`;
+ setStatus(state.status==='finished'||waitingForOpponent||waitingForFirstCall||claimant?$('setTurnStatus').textContent:state.turn_role===myRole?'내 차례입니다. 합/결을 외치거나 넘기세요.':`${state.turn_role==='host'?state.host_name:state.guest_name} 차례를 기다리는 중입니다.`);
  const deadline=claimant?state.set_claim_deadline:state.set_turn_deadline;
  $('setCountdown').textContent=state.status==='playing'&&deadline?String(Math.max(0,Math.ceil(Number(deadline)-Date.now()/1000))):'—';
- const canAct=state.status==='playing'&&!!state.starter_role&&state.turn_role===myRole&&!setActionBusy;
+ const canAct=state.status==='playing'&&!waitingForOpponent&&!claimant&&(!state.starter_role||state.turn_role===myRole)&&!setActionBusy;
  const choosing=claimant===myRole;
- $('setClaimBtn').disabled=!canAct||!!claimant;$('setConcludeBtn').disabled=!canAct||!!claimant;$('setPassBtn').disabled=!canAct||!!claimant;
+ $('setClaimBtn').disabled=!canAct;$('setConcludeBtn').disabled=!canAct;$('setPassBtn').disabled=!canAct||!state.starter_role;
  $('setClaimBtn').classList.toggle('hidden',!!claimant);$('setConcludeBtn').classList.toggle('hidden',!!claimant);$('setPassBtn').classList.toggle('hidden',!!claimant);
  $('setSubmitActions').classList.toggle('hidden',!claimant);$('setSelectionHelp').textContent=claimant?(choosing?`선택 ${selectedSetCards.length}/3 · 남은 시간 ${$('setCountdown').textContent}초`:'상대가 3장의 번호를 선택하고 있습니다.'):'그림 번호는 카드를 눌러 선택합니다.';
  $('setSubmitBtn').disabled=!choosing||selectedSetCards.length!==3||setActionBusy;
@@ -432,7 +433,7 @@ function render(s){current=s;setRulesMode(s.game_mode);announceRoundResult(s);if
  else{setStatus(s.winner==='draw'?'게임 종료 — 최종 무승부':s.winner===myRole?'게임 종료 — 최종 승리!':'게임 종료 — 최종 패배');bidArea.classList.add('hidden')}
  if(s.status==='finished')bidArea.classList.add('hidden');if(!canSubmit){$('submitBtn').disabled=true;if(!s.my_submitted&&s.turn_role!==myRole)$('bidInput').disabled=true}$('liveHistoryTitle').textContent=s.game_mode==='bw1'?'진행 로그 · 상대 숫자는 비공개':'진행 로그 · 상대 제시 숫자는 비공개';$('historyTitle').textContent=s.game_mode==='bw1'?'게임 종료 로그 · 상대 숫자 비공개':'게임 종료 로그';renderLiveHistory(s.history||[],s.status==='finished',myRole,s);renderHistory(s.history||[],s.status==='finished',myRole,s)
 }
-async function refresh(){if(!roomCode||!playerToken)return;try{let s=await rpc('bw_get_state',{p_code:roomCode,p_token:playerToken});if(s.game_mode==='bw_set'&&s.status==='playing'&&s.starter_role){await rpc('bw_set_action',{p_code:roomCode,p_token:playerToken,p_action:'tick',p_cards:[]});s=await rpc('bw_get_state',{p_code:roomCode,p_token:playerToken})}if(current?.status==='finished'&&s.status==='playing'){betOrderDraft=[0,1,2,3,4,5,6,7,8,9];betWagersDraft=Array(10).fill(0);betSetupRendered=false;selectedTileValue=null;selectedSetCards=[];selectedRecoveryAmounts={};selectedRecoveryWalletAmount=0;selectedRecoveryRound=0;$('bidInput').value=''}render(s)}catch(e){setStatus('상태 조회 오류: '+errText(e))}}
+async function refresh(){if(!roomCode||!playerToken||refreshing)return;refreshing=true;const code=roomCode,token=playerToken;try{let s=await rpc('bw_get_state',{p_code:code,p_token:token});if(s.game_mode==='bw_set'&&s.status==='playing'&&s.starter_role){await rpc('bw_set_action',{p_code:code,p_token:token,p_action:'tick',p_cards:[]});s=await rpc('bw_get_state',{p_code:code,p_token:token})}if(roomCode!==code||playerToken!==token)return;if(current?.status==='finished'&&s.status==='playing'){betOrderDraft=[0,1,2,3,4,5,6,7,8,9];betWagersDraft=Array(10).fill(0);betSetupRendered=false;selectedTileValue=null;selectedSetCards=[];selectedRecoveryAmounts={};selectedRecoveryWalletAmount=0;selectedRecoveryRound=0;$('bidInput').value=''}render(s)}catch(e){if(roomCode===code&&playerToken===token)setStatus('상태 조회 오류: '+errText(e))}finally{refreshing=false}}
 async function startPolling(){if(polling)clearInterval(polling);await refresh();polling=setInterval(refresh,1200)}
 async function submitBetAction(action,recover=[],walletSpend=null){if(betActionBusy||!current)return;const round=current.round_no;betActionBusy=true;try{await rpc('bw_bet_action',{p_code:roomCode,p_token:playerToken,p_action:action,p_round:round,p_recover_tiles:recover.map(item=>item.round),p_recover_amounts:recover.map(item=>item.amount),p_wallet_spend:walletSpend});selectedRecoveryAmounts={};selectedRecoveryWalletAmount=0;selectedRecoveryRound=0;await refresh()}catch(e){setStatus(action==='fold'?'포기 처리 실패: '+errText(e):'베팅 처리 실패: '+errText(e))}finally{betActionBusy=false;if(current?.game_mode==='bw_bet')renderBettingState(current)}}
 $('betPlanSubmit').onclick=async()=>{if(busy||!current)return;updateBetPlanTotal();if($('betPlanSubmit').disabled)return;busy=true;$('betPlanSubmit').disabled=true;try{await rpc('bw_bet_submit_plan',{p_code:roomCode,p_token:playerToken,p_order:betOrderDraft,p_wagers:betWagersDraft});await refresh()}catch(e){setStatus('타일 순서/베팅 확정 실패: '+errText(e));updateBetPlanTotal()}finally{busy=false;updateBetPlanTotal()}};
@@ -456,6 +457,7 @@ $('submitBtn').onclick=async()=>{if(busy||!current)return;const raw=$('bidInput'
 $('reactionControls').querySelectorAll('[data-reaction]').forEach(b=>b.onclick=async()=>{if(!current||current.status!=='playing')return;try{await rpc('bw_set_reaction',{p_code:roomCode,p_token:playerToken,p_message:b.dataset.reaction});await refresh()}catch(e){setStatus('감정 표현 전송 실패: '+errText(e))}});
 function renderReaction(id,r){const el=$(id);if(!r||!r.message||!r.until||Date.parse(r.until)<=Date.now()){el.classList.add('hidden');el.textContent='';return}el.textContent=r.message;el.classList.remove('hidden')}
 $('refreshBtn').onclick=refresh;
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh()});
 $('restartBtn').onclick=async()=>{if(busy||myRole!=='host'||current?.status!=='finished')return;if(!window.confirm('점수와 라운드 기록을 모두 초기화하고 새 게임을 시작할까요?'))return;busy=true;$('restartBtn').disabled=true;try{await rpc('bw_restart_game',{p_code:roomCode,p_token:playerToken});betOrderDraft=[0,1,2,3,4,5,6,7,8,9];betWagersDraft=Array(10).fill(0);betSetupRendered=false;selectedTileValue=null;selectedRecoveryAmounts={};selectedRecoveryWalletAmount=0;selectedRecoveryRound=0;$('bidInput').value='';await refresh()}catch(e){setStatus('다시하기 실패: '+errText(e))}finally{busy=false;$('restartBtn').disabled=false}};
 async function copyInviteLink(button){const u=new URL(location.href);u.searchParams.set('room',roomCode);try{await navigator.clipboard.writeText(u.toString());button.textContent='복사 완료'}catch{button.textContent='복사 불가 — 코드 사용'}}
 $('copyLink').onclick=()=>copyInviteLink($('copyLink'));$('gameCopyLink').onclick=()=>copyInviteLink($('gameCopyLink'));
